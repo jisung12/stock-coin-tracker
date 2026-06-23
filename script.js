@@ -423,6 +423,11 @@ function createChart() {
     borderDownColor: '#ff4757',
     wickUpColor: '#00ff88',
     wickDownColor: '#ff4757',
+    priceFormat: {
+      type: 'price',
+      precision: 8,
+      minMove: 0.00000001,
+    },
   });
 
   // 반응형
