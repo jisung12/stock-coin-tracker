@@ -83,35 +83,15 @@ export default {
 
 async function fetchAllData() {
   const result = {
-    metals: {},
     oil: {},
     indices: {}
   };
-
-  // 귀금속 (metals.dev - 무료, 제한 없음)
-  try {
-    const metalRes = await fetch('https://api.metals.dev/v1/latest?api_key=demo&currency=USD&unit=toz');
-    const metalData = await metalRes.json();
-    if (metalData?.metals) {
-      result.metals = {
-        gold: metalData.metals.gold || 0,
-        silver: metalData.metals.silver || 0,
-        platinum: metalData.metals.platinum || 0,
-        palladium: metalData.metals.palladium || 0,
-        copper: metalData.metals.copper || 0,
-      };
-    }
-  } catch (e) {
-    result.metals = { gold: 0, silver: 0, platinum: 0, palladium: 0, copper: 0 };
-  }
-
-  await sleep(500);
 
   // WTI
   try {
     const wtiRes = await fetch(`https://www.alphavantage.co/query?function=WTI&interval=daily&apikey=${ALPHA_API_KEY}`);
     const wtiData = await wtiRes.json();
-    result.oil.wti = parseFloat(wtiData?.data?.[0]?.value) || 0;
+    result.oil.wti = findValidValue(wtiData?.data);
   } catch (e) {
     result.oil.wti = 0;
   }
@@ -122,7 +102,7 @@ async function fetchAllData() {
   try {
     const brentRes = await fetch(`https://www.alphavantage.co/query?function=BRENT&interval=daily&apikey=${ALPHA_API_KEY}`);
     const brentData = await brentRes.json();
-    result.oil.brent = parseFloat(brentData?.data?.[0]?.value) || 0;
+    result.oil.brent = findValidValue(brentData?.data);
   } catch (e) {
     result.oil.brent = 0;
   }
@@ -177,4 +157,16 @@ async function fetchAllData() {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// 첫 번째 유효한 숫자 값 찾기 ("." 같은 잘못된 값 건너뛰기)
+function findValidValue(dataArray) {
+  if (!Array.isArray(dataArray)) return 0;
+  for (const item of dataArray) {
+    const val = parseFloat(item?.value);
+    if (!isNaN(val) && val > 0) {
+      return val;
+    }
+  }
+  return 0;
 }

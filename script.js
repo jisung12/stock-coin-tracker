@@ -331,39 +331,7 @@ async function fetchMetalPrices() {
     const { data, lastUpdate } = result;
     let html = '';
 
-    // 1. 귀금속
-    const metals = [
-      { key: 'gold', name: 'Gold (금)', emoji: '🥇' },
-      { key: 'silver', name: 'Silver (은)', emoji: '🥈' },
-      { key: 'platinum', name: 'Platinum (백금)', emoji: '⚪' },
-      { key: 'palladium', name: 'Palladium (팔라듐)', emoji: '🔘' },
-      { key: 'copper', name: 'Copper (구리)', emoji: '🟤' },
-    ];
-
-    metals.forEach(metal => {
-      const pricePerOz = data.metals?.[metal.key] || 0;
-      if (pricePerOz > 0) {
-        const pricePerGram = pricePerOz / 31.1035;
-        const krwPricePerGram = pricePerGram * usdToKrw;
-        html += `
-          <div class="price-item">
-            <div class="coin-info">
-              <div class="stock-icon metal-icon">${metal.emoji}</div>
-              <div>
-                <div class="coin-name">${metal.name}</div>
-                <div class="coin-symbol">gram</div>
-              </div>
-            </div>
-            <div class="price-info">
-              <div class="price">₩${Math.round(krwPricePerGram).toLocaleString()}</div>
-              <div class="price-usd">$${pricePerGram.toFixed(2)}/g</div>
-            </div>
-          </div>
-        `;
-      }
-    });
-
-    // 2. 유가
+    // 1. 유가
     if (data.oil?.wti > 0) {
       html += `
         <div class="price-item">
