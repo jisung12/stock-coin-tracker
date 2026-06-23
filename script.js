@@ -57,6 +57,19 @@ function getCoinIcon(symbol) {
   return `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons/svg/color/${coin}.svg`;
 }
 
+// 환율 (USD → KRW)
+let usdToKrw = 1400; // 기본값
+
+async function fetchExchangeRate() {
+  try {
+    const response = await fetch('https://api.exchangerate.fun/latest?base=USD');
+    const data = await response.json();
+    usdToKrw = data.rates.KRW;
+  } catch (error) {
+    console.log('환율 조회 실패, 기본값 사용');
+  }
+}
+
 async function fetchCryptoPrices() {
   const cryptoList = document.getElementById('crypto-list');
 
@@ -95,7 +108,8 @@ async function fetchCryptoPrices() {
             </div>
           </div>
           <div class="price-info">
-            <div class="price">$${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div class="price">₩${Math.round(price * usdToKrw).toLocaleString()}</div>
+            <div class="price-usd">$${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
             <div class="change ${change >= 0 ? 'up' : 'down'}">
               ${change >= 0 ? '+' : ''}${change.toFixed(2)}%
             </div>
@@ -235,7 +249,13 @@ async function fetchStockPrices() {
 document.getElementById('refresh-crypto').addEventListener('click', fetchCryptoPrices);
 
 // 초기 로드
-fetchCryptoPrices();
+(async () => {
+  await fetchExchangeRate();
+  fetchCryptoPrices();
+})();
 
-// 30초마다 자동 새로고침
+// 30초마다 코인 시세 새로고침
 setInterval(fetchCryptoPrices, 30000);
+
+// 1시간마다 환율 새로고침
+setInterval(fetchExchangeRate, 60 * 60 * 1000);
