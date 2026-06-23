@@ -51,6 +51,28 @@ const COIN_LIST = [
   { symbol: 'SUIUSDT', name: 'Sui' },
 ];
 
+// 가격 포맷팅 (소수점 자동 조절)
+function formatPrice(price, currency = 'USD') {
+  if (currency === 'KRW') {
+    const krwPrice = price * usdToKrw;
+    if (krwPrice >= 1000) {
+      return '₩' + Math.round(krwPrice).toLocaleString();
+    } else if (krwPrice >= 1) {
+      return '₩' + krwPrice.toFixed(2);
+    } else {
+      return '₩' + krwPrice.toFixed(6);
+    }
+  } else {
+    if (price >= 1) {
+      return '$' + price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    } else if (price >= 0.0001) {
+      return '$' + price.toFixed(6);
+    } else {
+      return '$' + price.toFixed(10);
+    }
+  }
+}
+
 // 코인 아이콘 URL (CryptoFont - 최신 코인 지원)
 function getCoinIcon(symbol) {
   const coin = symbol.replace('USDT', '').toLowerCase();
@@ -157,8 +179,8 @@ function renderCryptoList(data) {
           </div>
         </div>
         <div class="price-info">
-          <div class="price">₩${Math.round(price * usdToKrw).toLocaleString()}</div>
-          <div class="price-usd">$${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+          <div class="price">${formatPrice(price, 'KRW')}</div>
+          <div class="price-usd">${formatPrice(price, 'USD')}</div>
           <div class="change ${change >= 0 ? 'up' : 'down'}">
             ${change >= 0 ? '+' : ''}${change.toFixed(2)}%
           </div>
@@ -341,14 +363,14 @@ async function updateDetailPrice(symbol) {
     const low = parseFloat(data.lowPrice);
     const volume = parseFloat(data.quoteVolume);
 
-    document.getElementById('detail-price').textContent = `₩${Math.round(price * usdToKrw).toLocaleString()}`;
+    document.getElementById('detail-price').textContent = formatPrice(price, 'KRW');
 
     const changeEl = document.getElementById('detail-change');
     changeEl.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
     changeEl.className = `detail-change ${change >= 0 ? 'up' : 'down'}`;
 
-    document.getElementById('stat-high').textContent = `₩${Math.round(high * usdToKrw).toLocaleString()}`;
-    document.getElementById('stat-low').textContent = `₩${Math.round(low * usdToKrw).toLocaleString()}`;
+    document.getElementById('stat-high').textContent = formatPrice(high, 'KRW');
+    document.getElementById('stat-low').textContent = formatPrice(low, 'KRW');
     document.getElementById('stat-volume').textContent = `$${(volume / 1000000).toFixed(1)}M`;
   } catch (error) {
     console.error('가격 정보 조회 실패:', error);
