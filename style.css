@@ -326,10 +326,20 @@ header h1 {
 footer {
   text-align: center;
   margin-top: 50px;
-  padding-top: 25px;
+  padding: 25px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 0.85rem;
+}
+
+.footer-main {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.footer-sub {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 0.8rem;
   font-weight: 500;
 }
 
