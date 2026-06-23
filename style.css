@@ -75,6 +75,64 @@ header {
   font-size: 1.1rem;
 }
 
+/* === 상단 티커 스트립 === */
+.ticker-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 4px 2px 6px;
+  margin-bottom: 4px;
+}
+.ticker-strip::-webkit-scrollbar { display: none; }
+
+.ticker-chip {
+  flex: 0 0 auto;
+  min-width: 108px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 14px;
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform .15s, border-color .15s;
+}
+.ticker-chip:active { transform: scale(0.97); }
+.ticker-chip:hover { border-color: rgba(255, 255, 255, 0.25); }
+
+.chip-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.chip-name { font-size: 0.8rem; font-weight: 600; color: rgba(255, 255, 255, 0.75); white-space: nowrap; }
+.chip-chg { font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+.chip-price { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em; white-space: nowrap; }
+
+.chip-chg.up, .chip-price.up { color: #00ff88; }
+.chip-chg.down, .chip-price.down { color: #ff4757; }
+
+.chip-fx .chip-price {
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ticker-hint {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.75rem;
+  margin-bottom: 20px;
+}
+
 header h1 {
   font-size: 2.5rem;
   font-weight: 800;

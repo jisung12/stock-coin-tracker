@@ -11,10 +11,37 @@
   <!-- 메인 화면 -->
   <div id="main-view" class="container">
     <header>
-      <div class="exchange-rate">
-        <span class="rate-label">환율(USD/KRW)</span>
-        <span id="current-rate">-</span>
+      <div class="ticker-strip" id="ticker-strip">
+        <div class="ticker-chip chip-fx" id="tk-fx">
+          <div class="chip-top"><span class="chip-name">환율 USD/KRW</span></div>
+          <div class="chip-price" id="tk-fx-price">-</div>
+        </div>
+        <div class="ticker-chip" id="tk-btc" onclick="showDetail('BTCUSDT','Bitcoin')">
+          <div class="chip-top"><span class="chip-name">비트코인</span><span class="chip-chg" id="tk-btc-chg"></span></div>
+          <div class="chip-price" id="tk-btc-price">-</div>
+        </div>
+        <div class="ticker-chip" id="tk-kospi">
+          <div class="chip-top"><span class="chip-name">코스피</span><span class="chip-chg" id="tk-kospi-chg"></span></div>
+          <div class="chip-price" id="tk-kospi-price">-</div>
+        </div>
+        <div class="ticker-chip" id="tk-kosdaq">
+          <div class="chip-top"><span class="chip-name">코스닥</span><span class="chip-chg" id="tk-kosdaq-chg"></span></div>
+          <div class="chip-price" id="tk-kosdaq-price">-</div>
+        </div>
+        <div class="ticker-chip" id="tk-sp500">
+          <div class="chip-top"><span class="chip-name">S&amp;P 500</span><span class="chip-chg" id="tk-sp500-chg"></span></div>
+          <div class="chip-price" id="tk-sp500-price">-</div>
+        </div>
+        <div class="ticker-chip" id="tk-nasdaq">
+          <div class="chip-top"><span class="chip-name">나스닥</span><span class="chip-chg" id="tk-nasdaq-chg"></span></div>
+          <div class="chip-price" id="tk-nasdaq-price">-</div>
+        </div>
+        <div class="ticker-chip" id="tk-dow">
+          <div class="chip-top"><span class="chip-name">다우</span><span class="chip-chg" id="tk-dow-chg"></span></div>
+          <div class="chip-price" id="tk-dow-price">-</div>
+        </div>
       </div>
+      <div class="ticker-hint">← 좌우로 밀어서 더 보기</div>
       <h1>MARKET WATCH</h1>
       <nav class="tabs">
         <button class="tab active" data-tab="crypto">코인</button>

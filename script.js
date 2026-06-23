@@ -107,9 +107,25 @@ async function fetchExchangeRate() {
 }
 
 function updateRateDisplay() {
-  const rateEl = document.getElementById('current-rate');
+  const rateEl = document.getElementById('tk-fx-price');
   if (rateEl) {
     rateEl.textContent = `₩${usdToKrw.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+  }
+}
+
+// 상단 티커 칩 갱신 (비트코인/지수 공용)
+// key: 'btc'|'kospi'|'kosdaq'|'sp500'|'nasdaq'|'dow', prefix: '$' 면 달러표기
+function updateTickerChip(key, price, change, prefix) {
+  const priceEl = document.getElementById(`tk-${key}-price`);
+  const chgEl = document.getElementById(`tk-${key}-chg`);
+  if (priceEl && price != null && !isNaN(price)) {
+    priceEl.textContent = prefix === '$'
+      ? `$${Math.round(price).toLocaleString()}`
+      : price.toLocaleString(undefined, {maximumFractionDigits: 2});
+  }
+  if (chgEl && typeof change === 'number' && !isNaN(change)) {
+    chgEl.textContent = `${change >= 0 ? '▲' : '▼'}${Math.abs(change).toFixed(2)}%`;
+    chgEl.className = 'chip-chg ' + (change >= 0 ? 'up' : 'down');
   }
 }
 
@@ -164,6 +180,10 @@ function renderCryptoList(data) {
   data.forEach(item => {
     priceMap[item.symbol] = item;
   });
+
+  // 상단 티커: 비트코인 (실데이터, Binance)
+  const btc = priceMap['BTCUSDT'];
+  if (btc) updateTickerChip('btc', parseFloat(btc.lastPrice), parseFloat(btc.priceChangePercent), '$');
 
   cryptoList.innerHTML = COIN_LIST.map(coin => {
     const ticker = priceMap[coin.symbol];
