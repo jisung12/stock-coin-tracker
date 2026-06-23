@@ -360,7 +360,13 @@ function createChart() {
   const container = document.getElementById('chart-container');
   container.innerHTML = '';
 
-  const width = container.clientWidth || window.innerWidth - 40;
+  // 라이브러리 체크
+  if (typeof LightweightCharts === 'undefined') {
+    container.innerHTML = '<p style="color:#888;text-align:center;padding:50px;">차트 로딩 실패</p>';
+    return;
+  }
+
+  const width = container.clientWidth || window.innerWidth - 70;
 
   chart = LightweightCharts.createChart(container, {
     width: width,
@@ -372,9 +378,6 @@ function createChart() {
     grid: {
       vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
       horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
-    },
-    crosshair: {
-      mode: LightweightCharts.CrosshairMode.Normal,
     },
     rightPriceScale: {
       borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -396,7 +399,7 @@ function createChart() {
 
   // 반응형
   window.addEventListener('resize', () => {
-    if (chart) {
+    if (chart && container.clientWidth > 0) {
       chart.applyOptions({ width: container.clientWidth });
     }
   });
