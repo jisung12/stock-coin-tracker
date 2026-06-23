@@ -11,6 +11,10 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (tab.dataset.tab === 'stock') {
       fetchStockPrices();
     }
+    // 기타 탭 클릭 시 시세 로드
+    if (tab.dataset.tab === 'etc') {
+      fetchMetalPrices();
+    }
   });
 });
 
@@ -304,6 +308,94 @@ async function fetchStockPrices() {
         <p>${error.message}</p>
       </div>
     `;
+  }
+}
+
+// ============================================
+// 기타 (금, 은 등 귀금속 - metals.dev API)
+// ============================================
+const METAL_LIST = [
+  { symbol: 'XAU', name: 'Gold (금)', emoji: '🥇' },
+  { symbol: 'XAG', name: 'Silver (은)', emoji: '🥈' },
+  { symbol: 'XPT', name: 'Platinum (백금)', emoji: '⚪' },
+  { symbol: 'XPD', name: 'Palladium (팔라듐)', emoji: '🔘' },
+];
+
+async function fetchMetalPrices() {
+  const etcList = document.getElementById('etc-list');
+
+  // 캐시 확인
+  const cached = localStorage.getItem('metalCache');
+  const cacheTime = localStorage.getItem('metalCacheTime');
+
+  if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
+    renderMetalList(JSON.parse(cached));
+    return;
+  }
+
+  etcList.innerHTML = '<div class="loading">로딩 중...</div>';
+
+  try {
+    // metals.dev API (무료, 키 불필요)
+    const response = await fetch('https://api.metals.dev/v1/latest?api_key=demo&currency=USD&unit=toz');
+
+    if (!response.ok) throw new Error('API 요청 실패');
+
+    const data = await response.json();
+
+    // 캐시 저장
+    localStorage.setItem('metalCache', JSON.stringify(data));
+    localStorage.setItem('metalCacheTime', Date.now().toString());
+
+    renderMetalList(data);
+
+  } catch (error) {
+    etcList.innerHTML = `
+      <div class="notice">
+        <p>⚠️ 데이터를 불러올 수 없습니다</p>
+        <p style="font-size: 0.85rem; color: #666;">${error.message}</p>
+      </div>
+    `;
+  }
+}
+
+function renderMetalList(data) {
+  const etcList = document.getElementById('etc-list');
+
+  if (!data.metals) {
+    etcList.innerHTML = '<div class="notice"><p>데이터 형식 오류</p></div>';
+    return;
+  }
+
+  etcList.innerHTML = METAL_LIST.map(metal => {
+    const pricePerOz = data.metals[metal.symbol.toLowerCase()];
+    if (!pricePerOz) return '';
+
+    // 1 트로이 온스 = 31.1035g, 금/은은 보통 g당 가격으로 표시
+    const pricePerGram = pricePerOz / 31.1035;
+    const krwPricePerGram = pricePerGram * usdToKrw;
+
+    return `
+      <div class="price-item">
+        <div class="coin-info">
+          <div class="stock-icon metal-icon">${metal.emoji}</div>
+          <div>
+            <div class="coin-name">${metal.name}</div>
+            <div class="coin-symbol">${metal.symbol} / gram</div>
+          </div>
+        </div>
+        <div class="price-info">
+          <div class="price">₩${Math.round(krwPricePerGram).toLocaleString()}</div>
+          <div class="price-usd">$${pricePerGram.toFixed(2)}/g</div>
+          <div class="price-usd" style="font-size:0.75rem;">($${pricePerOz.toFixed(2)}/oz)</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const updateEl = document.querySelector('.last-update-etc');
+  if (updateEl) {
+    updateEl.textContent = `업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
   }
 }
 

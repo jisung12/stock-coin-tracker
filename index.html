@@ -19,6 +19,7 @@
       <nav class="tabs">
         <button class="tab active" data-tab="crypto">코인</button>
         <button class="tab" data-tab="stock">주식</button>
+        <button class="tab" data-tab="etc">기타</button>
       </nav>
     </header>
 
@@ -37,11 +38,21 @@
       <section id="stock" class="tab-content">
         <div id="stock-list" class="price-list"></div>
       </section>
+
+      <!-- 기타 섹션 (금, 은, 원자재 등) -->
+      <section id="etc" class="tab-content">
+        <div class="update-bar">
+          <span class="last-update-etc">업데이트: -</span>
+        </div>
+        <div id="etc-list" class="price-list">
+          <div class="loading">로딩 중...</div>
+        </div>
+      </section>
     </main>
 
     <footer>
       <p class="footer-main">시가총액 상위 30개 코인 | 실시간 Binance 시세</p>
-      <p class="footer-sub">환율: exchangerate.fun (1시간 단위) | 주식: 한국투자증권 API</p>
+      <p class="footer-sub">환율: exchangerate.fun | 주식: 한국투자증권 | 귀금속: metals.dev</p>
     </footer>
   </div>
 
