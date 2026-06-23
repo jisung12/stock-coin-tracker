@@ -51,16 +51,16 @@ const COIN_LIST = [
   { symbol: 'SUIUSDT', name: 'Sui' },
 ];
 
-// 코인 아이콘 URL (primary)
+// 코인 아이콘 URL (CryptoFont - 최신 코인 지원)
 function getCoinIcon(symbol) {
   const coin = symbol.replace('USDT', '').toLowerCase();
-  return `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons/svg/color/${coin}.svg`;
+  return `https://cryptofonts.com/img/icons/${coin}.svg`;
 }
 
 // 코인 아이콘 URL (fallback)
 function getCoinIconFallback(symbol) {
   const coin = symbol.replace('USDT', '').toLowerCase();
-  return `https://cryptofonts.com/img/icons/${coin}.svg`;
+  return `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons/svg/color/${coin}.svg`;
 }
 
 // 환율 (USD → KRW)
