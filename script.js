@@ -19,37 +19,43 @@ document.querySelectorAll('.tab').forEach(tab => {
 // ============================================
 // 시총 상위 30개 (스테이블코인 제외, Binance 기준)
 const COIN_LIST = [
-  { symbol: 'BTCUSDT', name: 'Bitcoin', icon: '₿' },
-  { symbol: 'ETHUSDT', name: 'Ethereum', icon: 'Ξ' },
-  { symbol: 'BNBUSDT', name: 'BNB', icon: 'B' },
-  { symbol: 'XRPUSDT', name: 'XRP', icon: 'X' },
-  { symbol: 'SOLUSDT', name: 'Solana', icon: 'S' },
-  { symbol: 'ADAUSDT', name: 'Cardano', icon: 'A' },
-  { symbol: 'DOGEUSDT', name: 'Dogecoin', icon: 'D' },
-  { symbol: 'TRXUSDT', name: 'TRON', icon: 'T' },
-  { symbol: 'AVAXUSDT', name: 'Avalanche', icon: 'A' },
-  { symbol: 'LINKUSDT', name: 'Chainlink', icon: 'L' },
-  { symbol: 'TONUSDT', name: 'Toncoin', icon: 'T' },
-  { symbol: 'SHIBUSDT', name: 'Shiba Inu', icon: 'S' },
-  { symbol: 'DOTUSDT', name: 'Polkadot', icon: 'D' },
-  { symbol: 'BCHUSDT', name: 'Bitcoin Cash', icon: 'B' },
-  { symbol: 'NEARUSDT', name: 'NEAR Protocol', icon: 'N' },
-  { symbol: 'LTCUSDT', name: 'Litecoin', icon: 'L' },
-  { symbol: 'UNIUSDT', name: 'Uniswap', icon: 'U' },
-  { symbol: 'PEPEUSDT', name: 'Pepe', icon: 'P' },
-  { symbol: 'APTUSDT', name: 'Aptos', icon: 'A' },
-  { symbol: 'ICPUSDT', name: 'Internet Computer', icon: 'I' },
-  { symbol: 'ETCUSDT', name: 'Ethereum Classic', icon: 'E' },
-  { symbol: 'XLMUSDT', name: 'Stellar', icon: 'X' },
-  { symbol: 'FILUSDT', name: 'Filecoin', icon: 'F' },
-  { symbol: 'ATOMUSDT', name: 'Cosmos', icon: 'A' },
-  { symbol: 'ARBUSDT', name: 'Arbitrum', icon: 'A' },
-  { symbol: 'IMXUSDT', name: 'Immutable', icon: 'I' },
-  { symbol: 'HBARUSDT', name: 'Hedera', icon: 'H' },
-  { symbol: 'OPUSDT', name: 'Optimism', icon: 'O' },
-  { symbol: 'INJUSDT', name: 'Injective', icon: 'I' },
-  { symbol: 'SUIUSDT', name: 'Sui', icon: 'S' },
+  { symbol: 'BTCUSDT', name: 'Bitcoin' },
+  { symbol: 'ETHUSDT', name: 'Ethereum' },
+  { symbol: 'BNBUSDT', name: 'BNB' },
+  { symbol: 'XRPUSDT', name: 'XRP' },
+  { symbol: 'SOLUSDT', name: 'Solana' },
+  { symbol: 'ADAUSDT', name: 'Cardano' },
+  { symbol: 'DOGEUSDT', name: 'Dogecoin' },
+  { symbol: 'TRXUSDT', name: 'TRON' },
+  { symbol: 'AVAXUSDT', name: 'Avalanche' },
+  { symbol: 'LINKUSDT', name: 'Chainlink' },
+  { symbol: 'TONUSDT', name: 'Toncoin' },
+  { symbol: 'SHIBUSDT', name: 'Shiba Inu' },
+  { symbol: 'DOTUSDT', name: 'Polkadot' },
+  { symbol: 'BCHUSDT', name: 'Bitcoin Cash' },
+  { symbol: 'NEARUSDT', name: 'NEAR Protocol' },
+  { symbol: 'LTCUSDT', name: 'Litecoin' },
+  { symbol: 'UNIUSDT', name: 'Uniswap' },
+  { symbol: 'PEPEUSDT', name: 'Pepe' },
+  { symbol: 'APTUSDT', name: 'Aptos' },
+  { symbol: 'ICPUSDT', name: 'Internet Computer' },
+  { symbol: 'ETCUSDT', name: 'Ethereum Classic' },
+  { symbol: 'XLMUSDT', name: 'Stellar' },
+  { symbol: 'FILUSDT', name: 'Filecoin' },
+  { symbol: 'ATOMUSDT', name: 'Cosmos' },
+  { symbol: 'ARBUSDT', name: 'Arbitrum' },
+  { symbol: 'IMXUSDT', name: 'Immutable' },
+  { symbol: 'HBARUSDT', name: 'Hedera' },
+  { symbol: 'OPUSDT', name: 'Optimism' },
+  { symbol: 'INJUSDT', name: 'Injective' },
+  { symbol: 'SUIUSDT', name: 'Sui' },
 ];
+
+// 코인 아이콘 URL
+function getCoinIcon(symbol) {
+  const coin = symbol.replace('USDT', '').toLowerCase();
+  return `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons/svg/color/${coin}.svg`;
+}
 
 async function fetchCryptoPrices() {
   const cryptoList = document.getElementById('crypto-list');
@@ -78,13 +84,14 @@ async function fetchCryptoPrices() {
       const price = parseFloat(ticker.lastPrice);
       const change = parseFloat(ticker.priceChangePercent);
 
+      const coinSymbol = coin.symbol.replace('USDT', '');
       return `
         <div class="price-item">
           <div class="coin-info">
-            <div class="stock-icon">${coin.icon}</div>
+            <img src="${getCoinIcon(coin.symbol)}" alt="${coinSymbol}" class="coin-icon" onerror="this.style.display='none'">
             <div>
               <div class="coin-name">${coin.name}</div>
-              <div class="coin-symbol">${coin.symbol.replace('USDT', '')}</div>
+              <div class="coin-symbol">${coinSymbol}</div>
             </div>
           </div>
           <div class="price-info">
