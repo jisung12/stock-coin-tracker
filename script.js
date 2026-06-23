@@ -322,9 +322,11 @@ async function showDetail(symbol, name) {
   // 현재 가격 정보 가져오기
   await updateDetailPrice(symbol);
 
-  // 차트 생성
-  createChart();
-  await loadChartData(currentPeriod);
+  // 차트 생성 (DOM 렌더링 후 약간 지연)
+  setTimeout(async () => {
+    createChart();
+    await loadChartData(currentPeriod);
+  }, 50);
 }
 
 // 가격 정보 업데이트
@@ -358,8 +360,10 @@ function createChart() {
   const container = document.getElementById('chart-container');
   container.innerHTML = '';
 
+  const width = container.clientWidth || window.innerWidth - 40;
+
   chart = LightweightCharts.createChart(container, {
-    width: container.clientWidth,
+    width: width,
     height: 350,
     layout: {
       background: { type: 'solid', color: 'transparent' },
