@@ -65,8 +65,17 @@ async function fetchExchangeRate() {
     const response = await fetch('https://api.exchangerate.fun/latest?base=USD');
     const data = await response.json();
     usdToKrw = data.rates.KRW;
+    updateRateDisplay();
   } catch (error) {
     console.log('환율 조회 실패, 기본값 사용');
+    updateRateDisplay();
+  }
+}
+
+function updateRateDisplay() {
+  const rateEl = document.getElementById('current-rate');
+  if (rateEl) {
+    rateEl.textContent = `₩${usdToKrw.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
   }
 }
 
