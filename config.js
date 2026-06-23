@@ -10,6 +10,11 @@ const CONFIG = {
     BASE_URL: 'https://openapi.koreainvestment.com:9443',
   },
 
+  // Alpha Vantage API (유가, 미국 지수)
+  ALPHA_VANTAGE: {
+    API_KEY: 'N00513KH6IL4U3BX',
+  },
+
   // 관심 종목 (종목코드)
   WATCHLIST: [
     { code: '005930', name: '삼성전자' },

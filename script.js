@@ -312,7 +312,7 @@ async function fetchStockPrices() {
 }
 
 // ============================================
-// 기타 (금, 은 등 귀금속 - metals.dev API)
+// 기타 (금, 은, 유가, 지수 등)
 // ============================================
 const METAL_LIST = [
   { symbol: 'XAU', name: 'Gold (금)', emoji: '🥇' },
@@ -321,77 +321,187 @@ const METAL_LIST = [
   { symbol: 'XPD', name: 'Palladium (팔라듐)', emoji: '🔘' },
 ];
 
+// Alpha Vantage 캐시는 1시간 (API 제한 25회/일)
+const ALPHA_CACHE_DURATION = 60 * 60 * 1000;
+
 async function fetchMetalPrices() {
   const etcList = document.getElementById('etc-list');
-
-  // 캐시 확인
-  const cached = localStorage.getItem('metalCache');
-  const cacheTime = localStorage.getItem('metalCacheTime');
-
-  if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
-    renderMetalList(JSON.parse(cached));
-    return;
-  }
-
   etcList.innerHTML = '<div class="loading">로딩 중...</div>';
 
+  let metalHtml = '';
+  let oilHtml = '';
+  let indexHtml = '';
+
+  // 1. 귀금속 (metals.dev)
   try {
-    // metals.dev API (무료, 키 불필요)
-    const response = await fetch('https://api.metals.dev/v1/latest?api_key=demo&currency=USD&unit=toz');
+    const cached = localStorage.getItem('metalCache');
+    const cacheTime = localStorage.getItem('metalCacheTime');
+    let metalData;
 
-    if (!response.ok) throw new Error('API 요청 실패');
+    if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
+      metalData = JSON.parse(cached);
+    } else {
+      const response = await fetch('https://api.metals.dev/v1/latest?api_key=demo&currency=USD&unit=toz');
+      if (response.ok) {
+        metalData = await response.json();
+        localStorage.setItem('metalCache', JSON.stringify(metalData));
+        localStorage.setItem('metalCacheTime', Date.now().toString());
+      }
+    }
 
-    const data = await response.json();
-
-    // 캐시 저장
-    localStorage.setItem('metalCache', JSON.stringify(data));
-    localStorage.setItem('metalCacheTime', Date.now().toString());
-
-    renderMetalList(data);
-
-  } catch (error) {
-    etcList.innerHTML = `
-      <div class="notice">
-        <p>⚠️ 데이터를 불러올 수 없습니다</p>
-        <p style="font-size: 0.85rem; color: #666;">${error.message}</p>
-      </div>
-    `;
-  }
-}
-
-function renderMetalList(data) {
-  const etcList = document.getElementById('etc-list');
-
-  if (!data.metals) {
-    etcList.innerHTML = '<div class="notice"><p>데이터 형식 오류</p></div>';
-    return;
-  }
-
-  etcList.innerHTML = METAL_LIST.map(metal => {
-    const pricePerOz = data.metals[metal.symbol.toLowerCase()];
-    if (!pricePerOz) return '';
-
-    // 1 트로이 온스 = 31.1035g, 금/은은 보통 g당 가격으로 표시
-    const pricePerGram = pricePerOz / 31.1035;
-    const krwPricePerGram = pricePerGram * usdToKrw;
-
-    return `
-      <div class="price-item">
-        <div class="coin-info">
-          <div class="stock-icon metal-icon">${metal.emoji}</div>
-          <div>
-            <div class="coin-name">${metal.name}</div>
-            <div class="coin-symbol">${metal.symbol} / gram</div>
+    if (metalData?.metals) {
+      metalHtml = METAL_LIST.map(metal => {
+        const pricePerOz = metalData.metals[metal.symbol.toLowerCase()];
+        if (!pricePerOz) return '';
+        const pricePerGram = pricePerOz / 31.1035;
+        const krwPricePerGram = pricePerGram * usdToKrw;
+        return `
+          <div class="price-item">
+            <div class="coin-info">
+              <div class="stock-icon metal-icon">${metal.emoji}</div>
+              <div>
+                <div class="coin-name">${metal.name}</div>
+                <div class="coin-symbol">${metal.symbol} / gram</div>
+              </div>
+            </div>
+            <div class="price-info">
+              <div class="price">₩${Math.round(krwPricePerGram).toLocaleString()}</div>
+              <div class="price-usd">$${pricePerGram.toFixed(2)}/g</div>
+            </div>
           </div>
-        </div>
-        <div class="price-info">
-          <div class="price">₩${Math.round(krwPricePerGram).toLocaleString()}</div>
-          <div class="price-usd">$${pricePerGram.toFixed(2)}/g</div>
-          <div class="price-usd" style="font-size:0.75rem;">($${pricePerOz.toFixed(2)}/oz)</div>
-        </div>
-      </div>
-    `;
-  }).join('');
+        `;
+      }).join('');
+    }
+  } catch (e) {
+    console.log('귀금속 조회 실패:', e);
+  }
+
+  // 2. 유가 (Alpha Vantage) - WTI, Brent
+  try {
+    const oilCached = localStorage.getItem('oilCache');
+    const oilCacheTime = localStorage.getItem('oilCacheTime');
+    let oilData;
+
+    if (oilCached && oilCacheTime && (Date.now() - parseInt(oilCacheTime)) < ALPHA_CACHE_DURATION) {
+      oilData = JSON.parse(oilCached);
+    } else if (CONFIG.ALPHA_VANTAGE?.API_KEY) {
+      const [wtiRes, brentRes] = await Promise.all([
+        fetch(`https://www.alphavantage.co/query?function=WTI&interval=daily&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`),
+        fetch(`https://www.alphavantage.co/query?function=BRENT&interval=daily&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`)
+      ]);
+      const wtiData = await wtiRes.json();
+      const brentData = await brentRes.json();
+      oilData = { wti: wtiData, brent: brentData };
+      localStorage.setItem('oilCache', JSON.stringify(oilData));
+      localStorage.setItem('oilCacheTime', Date.now().toString());
+    }
+
+    if (oilData) {
+      const wtiPrice = parseFloat(oilData.wti?.data?.[0]?.value) || 0;
+      const brentPrice = parseFloat(oilData.brent?.data?.[0]?.value) || 0;
+
+      if (wtiPrice > 0) {
+        oilHtml += `
+          <div class="price-item">
+            <div class="coin-info">
+              <div class="stock-icon oil-icon">🛢️</div>
+              <div>
+                <div class="coin-name">WTI 원유</div>
+                <div class="coin-symbol">배럴당</div>
+              </div>
+            </div>
+            <div class="price-info">
+              <div class="price">₩${Math.round(wtiPrice * usdToKrw).toLocaleString()}</div>
+              <div class="price-usd">$${wtiPrice.toFixed(2)}/barrel</div>
+            </div>
+          </div>
+        `;
+      }
+      if (brentPrice > 0) {
+        oilHtml += `
+          <div class="price-item">
+            <div class="coin-info">
+              <div class="stock-icon oil-icon">🛢️</div>
+              <div>
+                <div class="coin-name">Brent 원유</div>
+                <div class="coin-symbol">배럴당</div>
+              </div>
+            </div>
+            <div class="price-info">
+              <div class="price">₩${Math.round(brentPrice * usdToKrw).toLocaleString()}</div>
+              <div class="price-usd">$${brentPrice.toFixed(2)}/barrel</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+  } catch (e) {
+    console.log('유가 조회 실패:', e);
+  }
+
+  // 3. 미국 지수 (Alpha Vantage) - SPY, QQQ, DIA
+  try {
+    const indexCached = localStorage.getItem('indexCache');
+    const indexCacheTime = localStorage.getItem('indexCacheTime');
+    let indexData;
+
+    if (indexCached && indexCacheTime && (Date.now() - parseInt(indexCacheTime)) < ALPHA_CACHE_DURATION) {
+      indexData = JSON.parse(indexCached);
+    } else if (CONFIG.ALPHA_VANTAGE?.API_KEY) {
+      const [spyRes, qqqRes, diaRes] = await Promise.all([
+        fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=SPY&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`),
+        fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=QQQ&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`),
+        fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=DIA&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`)
+      ]);
+      const spyData = await spyRes.json();
+      const qqqData = await qqqRes.json();
+      const diaData = await diaRes.json();
+      indexData = { spy: spyData, qqq: qqqData, dia: diaData };
+      localStorage.setItem('indexCache', JSON.stringify(indexData));
+      localStorage.setItem('indexCacheTime', Date.now().toString());
+    }
+
+    if (indexData) {
+      const indices = [
+        { data: indexData.spy, name: 'S&P 500', symbol: 'SPY', emoji: '📊' },
+        { data: indexData.qqq, name: 'NASDAQ 100', symbol: 'QQQ', emoji: '💻' },
+        { data: indexData.dia, name: 'Dow Jones', symbol: 'DIA', emoji: '🏭' },
+      ];
+
+      indices.forEach(idx => {
+        const quote = idx.data?.['Global Quote'];
+        if (quote) {
+          const price = parseFloat(quote['05. price']) || 0;
+          const change = parseFloat(quote['10. change percent']?.replace('%', '')) || 0;
+          if (price > 0) {
+            indexHtml += `
+              <div class="price-item">
+                <div class="coin-info">
+                  <div class="stock-icon index-icon">${idx.emoji}</div>
+                  <div>
+                    <div class="coin-name">${idx.name}</div>
+                    <div class="coin-symbol">${idx.symbol} ETF</div>
+                  </div>
+                </div>
+                <div class="price-info">
+                  <div class="price">$${price.toFixed(2)}</div>
+                  <div class="change ${change >= 0 ? 'up' : 'down'}">
+                    ${change >= 0 ? '+' : ''}${change.toFixed(2)}%
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+        }
+      });
+    }
+  } catch (e) {
+    console.log('지수 조회 실패:', e);
+  }
+
+  // 렌더링
+  const allHtml = metalHtml + oilHtml + indexHtml;
+  etcList.innerHTML = allHtml || '<div class="notice"><p>데이터를 불러올 수 없습니다</p></div>';
 
   const updateEl = document.querySelector('.last-update-etc');
   if (updateEl) {

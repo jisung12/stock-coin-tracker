@@ -208,6 +208,18 @@ header h1 {
   font-size: 1.3rem;
 }
 
+.oil-icon {
+  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  box-shadow: 0 4px 15px rgba(15, 52, 96, 0.4);
+  font-size: 1.3rem;
+}
+
+.index-icon {
+  background: linear-gradient(135deg, #00b894, #00cec9, #0984e3);
+  box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+  font-size: 1.2rem;
+}
+
 .coin-name {
   font-weight: 600;
   font-size: 1.05rem;
