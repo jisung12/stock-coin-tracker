@@ -411,10 +411,10 @@ async function loadChartData(period) {
 
   // 기간별 설정
   const settings = {
-    '1h': { interval: '1m', limit: 60 },
-    '1d': { interval: '15m', limit: 96 },
-    '1w': { interval: '1h', limit: 168 },
-    '1M': { interval: '4h', limit: 180 },
+    '1h': { interval: '1m', limit: 60 },      // 1시간: 1분봉 60개
+    '1d': { interval: '15m', limit: 96 },     // 1일: 15분봉 96개
+    '1w': { interval: '4h', limit: 42 },      // 1주: 4시간봉 42개
+    '1M': { interval: '1d', limit: 30 },      // 1달: 일봉 30개
   };
 
   const { interval, limit } = settings[period];
