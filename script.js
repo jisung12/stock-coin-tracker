@@ -52,7 +52,12 @@ async function fetchCryptoPrices() {
       `마지막 업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
 
   } catch (error) {
-    cryptoList.innerHTML = `<div class="notice"><p>데이터를 불러올 수 없습니다</p><p>${error.message}</p></div>`;
+    cryptoList.innerHTML = `
+      <div class="notice">
+        <p>⚠️ 일시적으로 데이터를 불러올 수 없습니다</p>
+        <p style="font-size: 0.85rem; color: #666;">API 호출 제한일 수 있습니다. 잠시 후 자동 갱신됩니다.</p>
+      </div>
+    `;
   }
 }
 
