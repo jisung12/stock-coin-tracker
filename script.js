@@ -15,38 +15,66 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 // ============================================
-// 코인 시세 (CoinGecko API)
+// 코인 시세 (Binance API)
 // ============================================
+const COIN_LIST = [
+  { symbol: 'BTCUSDT', name: 'Bitcoin', icon: '₿' },
+  { symbol: 'ETHUSDT', name: 'Ethereum', icon: 'Ξ' },
+  { symbol: 'XRPUSDT', name: 'XRP', icon: 'X' },
+  { symbol: 'SOLUSDT', name: 'Solana', icon: 'S' },
+  { symbol: 'DOGEUSDT', name: 'Dogecoin', icon: 'D' },
+  { symbol: 'ADAUSDT', name: 'Cardano', icon: 'A' },
+  { symbol: 'TRXUSDT', name: 'TRON', icon: 'T' },
+  { symbol: 'LINKUSDT', name: 'Chainlink', icon: 'L' },
+  { symbol: 'MATICUSDT', name: 'Polygon', icon: 'P' },
+  { symbol: 'DOTUSDT', name: 'Polkadot', icon: 'D' },
+];
+
 async function fetchCryptoPrices() {
   const cryptoList = document.getElementById('crypto-list');
 
   try {
+    // 모든 코인 시세 한번에 가져오기
+    const symbols = COIN_LIST.map(c => `"${c.symbol}"`).join(',');
     const response = await fetch(
-      'https://api.coingecko.com/api/v3/coins/markets?' +
-      'vs_currency=krw&order=market_cap_desc&per_page=10&sparkline=false'
+      `https://api.binance.com/api/v3/ticker/24hr?symbols=[${symbols}]`
     );
 
     if (!response.ok) throw new Error('API 요청 실패');
 
     const data = await response.json();
 
-    cryptoList.innerHTML = data.map(coin => `
-      <div class="price-item">
-        <div class="coin-info">
-          <img src="${coin.image}" alt="${coin.name}" class="coin-icon">
-          <div>
-            <div class="coin-name">${coin.name}</div>
-            <div class="coin-symbol">${coin.symbol}</div>
+    // 심볼 순서대로 매핑
+    const priceMap = {};
+    data.forEach(item => {
+      priceMap[item.symbol] = item;
+    });
+
+    cryptoList.innerHTML = COIN_LIST.map(coin => {
+      const ticker = priceMap[coin.symbol];
+      if (!ticker) return '';
+
+      const price = parseFloat(ticker.lastPrice);
+      const change = parseFloat(ticker.priceChangePercent);
+
+      return `
+        <div class="price-item">
+          <div class="coin-info">
+            <div class="stock-icon">${coin.icon}</div>
+            <div>
+              <div class="coin-name">${coin.name}</div>
+              <div class="coin-symbol">${coin.symbol.replace('USDT', '')}</div>
+            </div>
+          </div>
+          <div class="price-info">
+            <div class="price">$${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div class="change ${change >= 0 ? 'up' : 'down'}">
+              ${change >= 0 ? '+' : ''}${change.toFixed(2)}%
+            </div>
           </div>
         </div>
-        <div class="price-info">
-          <div class="price">₩${coin.current_price.toLocaleString()}</div>
-          <div class="change ${coin.price_change_percentage_24h >= 0 ? 'up' : 'down'}">
-            ${coin.price_change_percentage_24h >= 0 ? '+' : ''}${coin.price_change_percentage_24h.toFixed(2)}%
-          </div>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     document.querySelector('.last-update').textContent =
       `마지막 업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
@@ -54,8 +82,8 @@ async function fetchCryptoPrices() {
   } catch (error) {
     cryptoList.innerHTML = `
       <div class="notice">
-        <p>⚠️ 일시적으로 데이터를 불러올 수 없습니다</p>
-        <p style="font-size: 0.85rem; color: #666;">API 호출 제한일 수 있습니다. 잠시 후 자동 갱신됩니다.</p>
+        <p>⚠️ 데이터를 불러올 수 없습니다</p>
+        <p style="font-size: 0.85rem; color: #666;">${error.message}</p>
       </div>
     `;
   }
