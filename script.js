@@ -423,11 +423,6 @@ function createChart() {
     borderDownColor: '#ff4757',
     wickUpColor: '#00ff88',
     wickDownColor: '#ff4757',
-    priceFormat: {
-      type: 'price',
-      precision: 8,
-      minMove: 0.00000001,
-    },
   });
 
   // 반응형
@@ -467,6 +462,23 @@ async function loadChartData(period) {
       low: parseFloat(candle[3]),
       close: parseFloat(candle[4]),
     }));
+
+    // 가격에 따라 소수점 자릿수 결정
+    const price = chartData[0]?.close || 1;
+    let precision, minMove;
+    if (price >= 1000) {
+      precision = 2; minMove = 0.01;
+    } else if (price >= 1) {
+      precision = 4; minMove = 0.0001;
+    } else if (price >= 0.001) {
+      precision = 6; minMove = 0.000001;
+    } else {
+      precision = 8; minMove = 0.00000001;
+    }
+
+    candleSeries.applyOptions({
+      priceFormat: { type: 'price', precision, minMove }
+    });
 
     candleSeries.setData(chartData);
     chart.timeScale().fitContent();
