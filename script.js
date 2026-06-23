@@ -85,8 +85,21 @@ function updateRateDisplay() {
   }
 }
 
+// 캐시 설정 (5초 내 재요청 방지)
+const CACHE_DURATION = 5000;
+
 async function fetchCryptoPrices() {
   const cryptoList = document.getElementById('crypto-list');
+
+  // 캐시 확인
+  const cached = localStorage.getItem('cryptoCache');
+  const cacheTime = localStorage.getItem('cryptoCacheTime');
+
+  if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
+    // 캐시 사용
+    renderCryptoList(JSON.parse(cached));
+    return;
+  }
 
   try {
     // 모든 코인 시세 한번에 가져오기
@@ -99,53 +112,63 @@ async function fetchCryptoPrices() {
 
     const data = await response.json();
 
-    // 심볼 순서대로 매핑
-    const priceMap = {};
-    data.forEach(item => {
-      priceMap[item.symbol] = item;
-    });
+    // 캐시 저장
+    localStorage.setItem('cryptoCache', JSON.stringify(data));
+    localStorage.setItem('cryptoCacheTime', Date.now().toString());
 
-    cryptoList.innerHTML = COIN_LIST.map(coin => {
-      const ticker = priceMap[coin.symbol];
-      if (!ticker) return '';
-
-      const price = parseFloat(ticker.lastPrice);
-      const change = parseFloat(ticker.priceChangePercent);
-
-      const coinSymbol = coin.symbol.replace('USDT', '');
-      const fallbackUrl = getCoinIconFallback(coin.symbol);
-      return `
-        <div class="price-item">
-          <div class="coin-info">
-            <img src="${getCoinIcon(coin.symbol)}" alt="${coinSymbol}" class="coin-icon" onerror="this.onerror=null; this.src='${fallbackUrl}'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='flex';}">
-            <div class="stock-icon fallback-icon" style="display:none">${coin.name.charAt(0)}</div>
-            <div>
-              <div class="coin-name">${coin.name}</div>
-              <div class="coin-symbol">${coinSymbol}</div>
-            </div>
-          </div>
-          <div class="price-info">
-            <div class="price">₩${Math.round(price * usdToKrw).toLocaleString()}</div>
-            <div class="price-usd">$${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-            <div class="change ${change >= 0 ? 'up' : 'down'}">
-              ${change >= 0 ? '+' : ''}${change.toFixed(2)}%
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    document.querySelector('.last-update').textContent =
-      `마지막 업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
+    renderCryptoList(data);
 
   } catch (error) {
-    cryptoList.innerHTML = `
+    document.getElementById('crypto-list').innerHTML = `
       <div class="notice">
         <p>⚠️ 데이터를 불러올 수 없습니다</p>
         <p style="font-size: 0.85rem; color: #666;">${error.message}</p>
       </div>
     `;
   }
+}
+
+function renderCryptoList(data) {
+  const cryptoList = document.getElementById('crypto-list');
+
+  // 심볼 순서대로 매핑
+  const priceMap = {};
+  data.forEach(item => {
+    priceMap[item.symbol] = item;
+  });
+
+  cryptoList.innerHTML = COIN_LIST.map(coin => {
+    const ticker = priceMap[coin.symbol];
+    if (!ticker) return '';
+
+    const price = parseFloat(ticker.lastPrice);
+    const change = parseFloat(ticker.priceChangePercent);
+
+    const coinSymbol = coin.symbol.replace('USDT', '');
+    const fallbackUrl = getCoinIconFallback(coin.symbol);
+    return `
+      <div class="price-item">
+        <div class="coin-info">
+          <img src="${getCoinIcon(coin.symbol)}" alt="${coinSymbol}" class="coin-icon" onerror="this.onerror=null; this.src='${fallbackUrl}'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='flex';}">
+          <div class="stock-icon fallback-icon" style="display:none">${coin.name.charAt(0)}</div>
+          <div>
+            <div class="coin-name">${coin.name}</div>
+            <div class="coin-symbol">${coinSymbol}</div>
+          </div>
+        </div>
+        <div class="price-info">
+          <div class="price">₩${Math.round(price * usdToKrw).toLocaleString()}</div>
+          <div class="price-usd">$${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+          <div class="change ${change >= 0 ? 'up' : 'down'}">
+            ${change >= 0 ? '+' : ''}${change.toFixed(2)}%
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.querySelector('.last-update').textContent =
+    `업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
 }
 
 // ============================================
@@ -261,20 +284,6 @@ async function fetchStockPrices() {
     `;
   }
 }
-
-// 새로고침 버튼 (3초 쿨다운)
-let lastRefresh = 0;
-const COOLDOWN = 3000; // 3초
-
-document.getElementById('refresh-crypto').addEventListener('click', () => {
-  const now = Date.now();
-  if (now - lastRefresh < COOLDOWN) {
-    const remaining = Math.ceil((COOLDOWN - (now - lastRefresh)) / 1000);
-    return; // 쿨다운 중이면 무시
-  }
-  lastRefresh = now;
-  fetchCryptoPrices();
-});
 
 // 초기 로드
 (async () => {
