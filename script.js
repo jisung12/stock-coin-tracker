@@ -17,17 +17,38 @@ document.querySelectorAll('.tab').forEach(tab => {
 // ============================================
 // 코인 시세 (Binance API)
 // ============================================
+// 시총 상위 30개 (스테이블코인 제외, Binance 기준)
 const COIN_LIST = [
   { symbol: 'BTCUSDT', name: 'Bitcoin', icon: '₿' },
   { symbol: 'ETHUSDT', name: 'Ethereum', icon: 'Ξ' },
+  { symbol: 'BNBUSDT', name: 'BNB', icon: 'B' },
   { symbol: 'XRPUSDT', name: 'XRP', icon: 'X' },
   { symbol: 'SOLUSDT', name: 'Solana', icon: 'S' },
-  { symbol: 'DOGEUSDT', name: 'Dogecoin', icon: 'D' },
   { symbol: 'ADAUSDT', name: 'Cardano', icon: 'A' },
+  { symbol: 'DOGEUSDT', name: 'Dogecoin', icon: 'D' },
   { symbol: 'TRXUSDT', name: 'TRON', icon: 'T' },
+  { symbol: 'AVAXUSDT', name: 'Avalanche', icon: 'A' },
   { symbol: 'LINKUSDT', name: 'Chainlink', icon: 'L' },
-  { symbol: 'MATICUSDT', name: 'Polygon', icon: 'P' },
+  { symbol: 'TONUSDT', name: 'Toncoin', icon: 'T' },
+  { symbol: 'SHIBUSDT', name: 'Shiba Inu', icon: 'S' },
   { symbol: 'DOTUSDT', name: 'Polkadot', icon: 'D' },
+  { symbol: 'BCHUSDT', name: 'Bitcoin Cash', icon: 'B' },
+  { symbol: 'NEARUSDT', name: 'NEAR Protocol', icon: 'N' },
+  { symbol: 'LTCUSDT', name: 'Litecoin', icon: 'L' },
+  { symbol: 'UNIUSDT', name: 'Uniswap', icon: 'U' },
+  { symbol: 'PEPEUSDT', name: 'Pepe', icon: 'P' },
+  { symbol: 'APTUSDT', name: 'Aptos', icon: 'A' },
+  { symbol: 'ICPUSDT', name: 'Internet Computer', icon: 'I' },
+  { symbol: 'ETCUSDT', name: 'Ethereum Classic', icon: 'E' },
+  { symbol: 'XLMUSDT', name: 'Stellar', icon: 'X' },
+  { symbol: 'FILUSDT', name: 'Filecoin', icon: 'F' },
+  { symbol: 'ATOMUSDT', name: 'Cosmos', icon: 'A' },
+  { symbol: 'ARBUSDT', name: 'Arbitrum', icon: 'A' },
+  { symbol: 'IMXUSDT', name: 'Immutable', icon: 'I' },
+  { symbol: 'HBARUSDT', name: 'Hedera', icon: 'H' },
+  { symbol: 'OPUSDT', name: 'Optimism', icon: 'O' },
+  { symbol: 'INJUSDT', name: 'Injective', icon: 'I' },
+  { symbol: 'SUIUSDT', name: 'Sui', icon: 'S' },
 ];
 
 async function fetchCryptoPrices() {
