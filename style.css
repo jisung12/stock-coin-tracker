@@ -49,29 +49,30 @@ header {
 .exchange-rate {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.03);
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 10px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 24px;
   border-radius: 50px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   margin-bottom: 20px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
-.exchange-rate span:first-child {
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 500;
+.rate-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
 }
 
 #current-rate {
-  background: linear-gradient(135deg, #00ff88, #00d4ff);
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 1.1rem;
 }
 
 header h1 {
