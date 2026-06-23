@@ -418,6 +418,8 @@ async function loadChartData(period) {
     '1h': { interval: '1h', limit: 72 },      // 1시간봉 72개 (3일)
     '4h': { interval: '4h', limit: 90 },      // 4시간봉 90개 (15일)
     '1d': { interval: '1d', limit: 60 },      // 일봉 60개 (2달)
+    '1w': { interval: '1w', limit: 52 },      // 주봉 52개 (1년)
+    '1M': { interval: '1M', limit: 36 },      // 월봉 36개 (3년)
   };
 
   const { interval, limit } = settings[period];
