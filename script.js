@@ -262,8 +262,19 @@ async function fetchStockPrices() {
   }
 }
 
-// 새로고침 버튼
-document.getElementById('refresh-crypto').addEventListener('click', fetchCryptoPrices);
+// 새로고침 버튼 (3초 쿨다운)
+let lastRefresh = 0;
+const COOLDOWN = 3000; // 3초
+
+document.getElementById('refresh-crypto').addEventListener('click', () => {
+  const now = Date.now();
+  if (now - lastRefresh < COOLDOWN) {
+    const remaining = Math.ceil((COOLDOWN - (now - lastRefresh)) / 1000);
+    return; // 쿨다운 중이면 무시
+  }
+  lastRefresh = now;
+  fetchCryptoPrices();
+});
 
 // 초기 로드
 (async () => {
