@@ -51,10 +51,16 @@ const COIN_LIST = [
   { symbol: 'SUIUSDT', name: 'Sui' },
 ];
 
-// 코인 아이콘 URL
+// 코인 아이콘 URL (primary)
 function getCoinIcon(symbol) {
   const coin = symbol.replace('USDT', '').toLowerCase();
   return `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons/svg/color/${coin}.svg`;
+}
+
+// 코인 아이콘 URL (fallback)
+function getCoinIconFallback(symbol) {
+  const coin = symbol.replace('USDT', '').toLowerCase();
+  return `https://cryptofonts.com/img/icons/${coin}.svg`;
 }
 
 // 환율 (USD → KRW)
@@ -107,10 +113,12 @@ async function fetchCryptoPrices() {
       const change = parseFloat(ticker.priceChangePercent);
 
       const coinSymbol = coin.symbol.replace('USDT', '');
+      const fallbackUrl = getCoinIconFallback(coin.symbol);
       return `
         <div class="price-item">
           <div class="coin-info">
-            <img src="${getCoinIcon(coin.symbol)}" alt="${coinSymbol}" class="coin-icon" onerror="this.style.display='none'">
+            <img src="${getCoinIcon(coin.symbol)}" alt="${coinSymbol}" class="coin-icon" onerror="this.onerror=null; this.src='${fallbackUrl}'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='flex';}">
+            <div class="stock-icon fallback-icon" style="display:none">${coin.name.charAt(0)}</div>
             <div>
               <div class="coin-name">${coin.name}</div>
               <div class="coin-symbol">${coinSymbol}</div>
