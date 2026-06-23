@@ -303,7 +303,7 @@ setInterval(fetchExchangeRate, 60 * 60 * 1000);
 let chart = null;
 let candleSeries = null;
 let currentSymbol = null;
-let currentPeriod = '1d';
+let currentPeriod = '4h';
 
 // 상세 페이지 표시
 async function showDetail(symbol, name) {
@@ -412,12 +412,12 @@ function createChart() {
 async function loadChartData(period) {
   if (!currentSymbol) return;
 
-  // 기간별 설정
+  // 봉 단위별 설정
   const settings = {
-    '1h': { interval: '1m', limit: 60 },      // 1시간: 1분봉 60개
-    '1d': { interval: '15m', limit: 96 },     // 1일: 15분봉 96개
-    '1w': { interval: '4h', limit: 42 },      // 1주: 4시간봉 42개
-    '1M': { interval: '1d', limit: 30 },      // 1달: 일봉 30개
+    '15m': { interval: '15m', limit: 96 },    // 15분봉 96개
+    '1h': { interval: '1h', limit: 72 },      // 1시간봉 72개 (3일)
+    '4h': { interval: '4h', limit: 90 },      // 4시간봉 90개 (15일)
+    '1d': { interval: '1d', limit: 60 },      // 일봉 60개 (2달)
   };
 
   const { interval, limit } = settings[period];
