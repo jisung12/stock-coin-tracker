@@ -1,0 +1,7 @@
+name = "market-data-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "672f07dd05554962837a7a995dcc09fa"
