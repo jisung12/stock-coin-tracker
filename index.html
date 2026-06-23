@@ -26,7 +26,8 @@
     <main>
       <!-- 코인 섹션 -->
       <section id="crypto" class="tab-content active">
-        <div class="update-bar">
+        <div class="info-bar">
+          <p>시가총액 상위 30개 코인 · Binance 실시간 시세</p>
           <span class="last-update">업데이트: -</span>
         </div>
         <div id="crypto-list" class="price-list">
@@ -36,12 +37,16 @@
 
       <!-- 주식 섹션 -->
       <section id="stock" class="tab-content">
+        <div class="info-bar">
+          <p>관심 종목 · 한국투자증권 API</p>
+        </div>
         <div id="stock-list" class="price-list"></div>
       </section>
 
-      <!-- 기타 섹션 (금, 은, 원자재 등) -->
+      <!-- 기타 섹션 (유가, 지수 등) -->
       <section id="etc" class="tab-content">
-        <div class="update-bar">
+        <div class="info-bar">
+          <p>유가 · 미국 지수 · 6시간 단위 갱신</p>
           <span class="last-update-etc">업데이트: -</span>
         </div>
         <div id="etc-list" class="price-list">
@@ -51,8 +56,7 @@
     </main>
 
     <footer>
-      <p class="footer-main">시가총액 상위 30개 코인 | 실시간 Binance 시세</p>
-      <p class="footer-sub">환율: exchangerate.fun | 주식: 한국투자증권 | 귀금속: metals.dev</p>
+      <p class="footer-sub">환율: exchangerate.fun (1시간 단위)</p>
     </footer>
   </div>
 
