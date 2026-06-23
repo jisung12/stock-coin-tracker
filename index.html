@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>실시간 시세</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📊 실시간 시세</h1>
+      <nav class="tabs">
+        <button class="tab active" data-tab="crypto">코인</button>
+        <button class="tab" data-tab="stock">주식</button>
+      </nav>
+    </header>
+
+    <main>
+      <!-- 코인 섹션 -->
+      <section id="crypto" class="tab-content active">
+        <div class="refresh-bar">
+          <span class="last-update">마지막 업데이트: -</span>
+          <button id="refresh-crypto" class="btn-refresh">새로고침</button>
+        </div>
+        <div id="crypto-list" class="price-list">
+          <div class="loading">로딩 중...</div>
+        </div>
+      </section>
+
+      <!-- 주식 섹션 -->
+      <section id="stock" class="tab-content">
+        <div class="notice">
+          <p>⚠️ 한국투자증권 API 키 설정이 필요합니다</p>
+          <p>API 키를 발급받은 후 설정해주세요</p>
+        </div>
+        <div id="stock-list" class="price-list"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>코인: CoinGecko API | 주식: 한국투자증권 API</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
