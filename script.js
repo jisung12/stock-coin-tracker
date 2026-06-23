@@ -9,7 +9,9 @@ document.querySelectorAll('.tab').forEach(tab => {
 
     // 주식 탭 클릭 시 시세 로드
     if (tab.dataset.tab === 'stock') {
-      fetchStockPrices();
+      const activeMarket = document.querySelector('.sub-tab.active')?.dataset.market || 'kr';
+      if (activeMarket === 'us') fetchUsStockPrices();
+      else fetchKrStockPrices();
     }
     // 기타 탭 클릭 시 시세 로드
     if (tab.dataset.tab === 'etc') {
@@ -198,116 +200,124 @@ function renderCryptoList(data) {
 }
 
 // ============================================
-// 주식 시세 (한국투자증권 API)
+// 주식 시세 (Cloudflare Worker → 한국투자증권 API)
 // ============================================
-let kisToken = null;
-let kisTokenExpiry = null;
 
-// 토큰 발급
-async function getKisToken() {
-  // 이미 유효한 토큰이 있으면 재사용
-  if (kisToken && kisTokenExpiry && new Date() < kisTokenExpiry) {
-    return kisToken;
-  }
+// 서브탭 전환
+document.querySelectorAll('.sub-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 
-  const response = await fetch(`${CONFIG.KIS.BASE_URL}/oauth2/tokenP`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      grant_type: 'client_credentials',
-      appkey: CONFIG.KIS.APP_KEY,
-      appsecret: CONFIG.KIS.APP_SECRET
-    })
-  });
+    const market = btn.dataset.market;
+    const krList = document.getElementById('stock-kr-list');
+    const usList = document.getElementById('stock-us-list');
 
-  const data = await response.json();
-  kisToken = data.access_token;
-  // 토큰 유효기간 설정 (보통 24시간이지만 안전하게 23시간)
-  kisTokenExpiry = new Date(Date.now() + 23 * 60 * 60 * 1000);
-
-  return kisToken;
-}
-
-// 개별 종목 시세 조회
-async function getStockPrice(stockCode) {
-  const token = await getKisToken();
-
-  const response = await fetch(
-    `${CONFIG.KIS.BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-price?` +
-    `FID_COND_MRKT_DIV_CODE=J&FID_INPUT_ISCD=${stockCode}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'appkey': CONFIG.KIS.APP_KEY,
-        'appsecret': CONFIG.KIS.APP_SECRET,
-        'tr_id': 'FHKST01010100'
-      }
+    if (market === 'kr') {
+      krList.style.display = '';
+      usList.style.display = 'none';
+      document.getElementById('stock-info-text').textContent = '코스피 상위 30 · 한국투자증권 API';
+      fetchKrStockPrices();
+    } else {
+      krList.style.display = 'none';
+      usList.style.display = '';
+      document.getElementById('stock-info-text').textContent = 'S&P 500 상위 30 · 한국투자증권 API';
+      fetchUsStockPrices();
     }
-  );
+  });
+});
 
-  return response.json();
-}
-
-// 주식 시세 가져오기
-async function fetchStockPrices() {
-  const stockList = document.getElementById('stock-list');
-
-  // API 키 확인
-  if (!CONFIG.KIS.APP_KEY || !CONFIG.KIS.APP_SECRET) {
-    stockList.innerHTML = `
-      <div class="notice">
-        <p>⚠️ API 키가 설정되지 않았습니다</p>
-        <p>config.js 파일에 APP_KEY와 APP_SECRET을 입력해주세요</p>
-        <p style="margin-top: 15px; font-size: 0.8rem; color: #555;">
-          1. <a href="https://apiportal.koreainvestment.com" target="_blank" style="color: #2563eb;">한국투자증권 개발자센터</a> 가입<br>
-          2. API 키 발급<br>
-          3. config.js에 키 입력
-        </p>
-      </div>
-    `;
-    return;
-  }
-
-  stockList.innerHTML = '<div class="loading">로딩 중...</div>';
+async function fetchKrStockPrices() {
+  const list = document.getElementById('stock-kr-list');
+  list.innerHTML = '<div class="loading">로딩 중...</div>';
 
   try {
-    const results = await Promise.all(
-      CONFIG.WATCHLIST.map(async (stock) => {
-        const data = await getStockPrice(stock.code);
-        return { ...stock, data: data.output };
-      })
-    );
+    const res = await fetch(`${WORKER_URL}/stocks/kr`);
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'API 오류');
 
-    stockList.innerHTML = results.map(stock => {
-      const price = parseInt(stock.data.stck_prpr);
-      const change = parseFloat(stock.data.prdy_ctrt);
+    const priceMap = {};
+    result.data.forEach(item => { priceMap[item.code] = item; });
 
+    list.innerHTML = CONFIG.WATCHLIST_KR.map(stock => {
+      const item = priceMap[stock.code];
+      if (!item?.success) return `
+        <div class="price-item">
+          <div class="coin-info">
+            <div class="stock-icon">${stock.name.charAt(0)}</div>
+            <div><div class="coin-name">${stock.name}</div><div class="coin-symbol">${stock.code}</div></div>
+          </div>
+          <div class="price-info"><div class="price" style="color:#888">조회 불가</div></div>
+        </div>`;
       return `
         <div class="price-item">
           <div class="coin-info">
             <div class="stock-icon">${stock.name.charAt(0)}</div>
-            <div>
-              <div class="coin-name">${stock.name}</div>
-              <div class="coin-symbol">${stock.code}</div>
-            </div>
+            <div><div class="coin-name">${stock.name}</div><div class="coin-symbol">${stock.code}</div></div>
           </div>
           <div class="price-info">
-            <div class="price">₩${price.toLocaleString()}</div>
-            <div class="change ${change >= 0 ? 'up' : 'down'}">
-              ${change >= 0 ? '+' : ''}${change.toFixed(2)}%
-            </div>
+            <div class="price">₩${item.price.toLocaleString()}</div>
+            <div class="change ${item.change >= 0 ? 'up' : 'down'}">${item.change >= 0 ? '+' : ''}${item.change.toFixed(2)}%</div>
           </div>
-        </div>
-      `;
+        </div>`;
     }).join('');
 
+    if (result.lastUpdate) {
+      document.getElementById('stock-last-update').textContent = `업데이트: ${new Date(result.lastUpdate).toLocaleTimeString('ko-KR')}`;
+    }
   } catch (error) {
-    stockList.innerHTML = `
-      <div class="notice">
-        <p>데이터를 불러올 수 없습니다</p>
-        <p>${error.message}</p>
-      </div>
-    `;
+    list.innerHTML = `<div class="notice"><p>데이터를 불러올 수 없습니다</p><p style="font-size:0.85rem;color:#666">${error.message}</p></div>`;
+  }
+}
+
+async function fetchUsStockPrices() {
+  const list = document.getElementById('stock-us-list');
+  list.innerHTML = '<div class="loading">로딩 중...</div>';
+
+  try {
+    const res = await fetch(`${WORKER_URL}/stocks/us`);
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'API 오류');
+
+    const priceMap = {};
+    result.data.forEach(item => { priceMap[item.symb] = item; });
+
+    list.innerHTML = CONFIG.WATCHLIST_US.map(stock => {
+      const item = priceMap[stock.symb];
+      if (!item?.success) return `
+        <div class="price-item">
+          <div class="coin-info">
+            <div class="stock-icon us-stock-icon">${stock.symb.charAt(0)}</div>
+            <div><div class="coin-name">${stock.name}</div><div class="coin-symbol">${stock.symb}</div></div>
+          </div>
+          <div class="price-info"><div class="price" style="color:#888">조회 불가</div></div>
+        </div>`;
+      // 등락률: Worker가 change를 안 주면(null) 전일종가(base)로 직접 계산
+      const chg = (typeof item.change === 'number')
+        ? item.change
+        : (item.base ? (item.price - item.base) / item.base * 100 : null);
+      const chgHtml = (chg === null)
+        ? '<div class="change">-</div>'
+        : `<div class="change ${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</div>`;
+      return `
+        <div class="price-item">
+          <div class="coin-info">
+            <div class="stock-icon us-stock-icon">${stock.symb.charAt(0)}</div>
+            <div><div class="coin-name">${stock.name}</div><div class="coin-symbol">${stock.symb}</div></div>
+          </div>
+          <div class="price-info">
+            <div class="price">$${item.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div class="price-usd">₩${Math.round(item.price * usdToKrw).toLocaleString()}</div>
+            ${chgHtml}
+          </div>
+        </div>`;
+    }).join('');
+
+    if (result.lastUpdate) {
+      document.getElementById('stock-last-update').textContent = `업데이트: ${new Date(result.lastUpdate).toLocaleTimeString('ko-KR')}`;
+    }
+  } catch (error) {
+    list.innerHTML = `<div class="notice"><p>데이터를 불러올 수 없습니다</p><p style="font-size:0.85rem;color:#666">${error.message}</p></div>`;
   }
 }
 

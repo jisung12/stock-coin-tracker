@@ -214,6 +214,40 @@ header h1 {
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
+.us-stock-icon {
+  background: linear-gradient(135deg, #0052cc, #0077b6, #00b4d8);
+  box-shadow: 0 4px 15px rgba(0, 82, 204, 0.3);
+}
+
+.sub-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.sub-tab {
+  padding: 10px 28px;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.sub-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.sub-tab.active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
 .metal-icon {
   background: linear-gradient(135deg, #ffd700, #ffb347, #f4a460);
   box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
