@@ -379,6 +379,9 @@ function createChart() {
       vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
       horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
     },
+    crosshair: {
+      mode: 0, // Normal mode - 마우스 자유롭게 따라다님
+    },
     rightPriceScale: {
       borderColor: 'rgba(255, 255, 255, 0.1)',
     },
