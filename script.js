@@ -376,7 +376,7 @@ async function fetchMetalPrices() {
     console.log('귀금속 조회 실패:', e);
   }
 
-  // 2. 유가 (Alpha Vantage) - WTI, Brent
+  // 2. 유가 (Alpha Vantage) - WTI, Brent (순차 요청으로 rate limit 회피)
   try {
     const oilCached = localStorage.getItem('oilCache');
     const oilCacheTime = localStorage.getItem('oilCacheTime');
@@ -385,12 +385,15 @@ async function fetchMetalPrices() {
     if (oilCached && oilCacheTime && (Date.now() - parseInt(oilCacheTime)) < ALPHA_CACHE_DURATION) {
       oilData = JSON.parse(oilCached);
     } else if (CONFIG.ALPHA_VANTAGE?.API_KEY) {
-      const [wtiRes, brentRes] = await Promise.all([
-        fetch(`https://www.alphavantage.co/query?function=WTI&interval=daily&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`),
-        fetch(`https://www.alphavantage.co/query?function=BRENT&interval=daily&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`)
-      ]);
+      // 순차 요청 (rate limit 회피)
+      const wtiRes = await fetch(`https://www.alphavantage.co/query?function=WTI&interval=daily&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`);
       const wtiData = await wtiRes.json();
+
+      await new Promise(r => setTimeout(r, 1500)); // 1.5초 대기
+
+      const brentRes = await fetch(`https://www.alphavantage.co/query?function=BRENT&interval=daily&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`);
       const brentData = await brentRes.json();
+
       oilData = { wti: wtiData, brent: brentData };
       localStorage.setItem('oilCache', JSON.stringify(oilData));
       localStorage.setItem('oilCacheTime', Date.now().toString());
@@ -439,7 +442,7 @@ async function fetchMetalPrices() {
     console.log('유가 조회 실패:', e);
   }
 
-  // 3. 미국 지수 (Alpha Vantage) - SPY, QQQ, DIA
+  // 3. 미국 지수 (Alpha Vantage) - SPY, QQQ, DIA (순차 요청)
   try {
     const indexCached = localStorage.getItem('indexCache');
     const indexCacheTime = localStorage.getItem('indexCacheTime');
@@ -448,14 +451,21 @@ async function fetchMetalPrices() {
     if (indexCached && indexCacheTime && (Date.now() - parseInt(indexCacheTime)) < ALPHA_CACHE_DURATION) {
       indexData = JSON.parse(indexCached);
     } else if (CONFIG.ALPHA_VANTAGE?.API_KEY) {
-      const [spyRes, qqqRes, diaRes] = await Promise.all([
-        fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=SPY&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`),
-        fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=QQQ&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`),
-        fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=DIA&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`)
-      ]);
+      await new Promise(r => setTimeout(r, 1500)); // 대기
+
+      const spyRes = await fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=SPY&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`);
       const spyData = await spyRes.json();
+
+      await new Promise(r => setTimeout(r, 1500));
+
+      const qqqRes = await fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=QQQ&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`);
       const qqqData = await qqqRes.json();
+
+      await new Promise(r => setTimeout(r, 1500));
+
+      const diaRes = await fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=DIA&apikey=${CONFIG.ALPHA_VANTAGE.API_KEY}`);
       const diaData = await diaRes.json();
+
       indexData = { spy: spyData, qqq: qqqData, dia: diaData };
       localStorage.setItem('indexCache', JSON.stringify(indexData));
       localStorage.setItem('indexCacheTime', Date.now().toString());
