@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>실시간 시세</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
-  <div class="container">
+  <!-- 메인 화면 -->
+  <div id="main-view" class="container">
     <header>
       <div class="exchange-rate">
         <span>USD/KRW</span>
@@ -41,6 +43,48 @@
       <p class="footer-main">시가총액 상위 30개 코인 | 실시간 Binance 시세</p>
       <p class="footer-sub">환율: exchangerate.fun (1시간 단위) | 주식: 한국투자증권 API</p>
     </footer>
+  </div>
+
+  <!-- 상세 화면 (차트) -->
+  <div id="detail-view" class="container" style="display: none;">
+    <header class="detail-header">
+      <button id="back-btn" class="back-btn">← 뒤로</button>
+      <div class="detail-coin-info">
+        <img id="detail-icon" class="detail-icon" src="" alt="">
+        <div>
+          <div id="detail-name" class="detail-name"></div>
+          <div id="detail-symbol" class="detail-symbol"></div>
+        </div>
+      </div>
+      <div class="detail-price-info">
+        <div id="detail-price" class="detail-price"></div>
+        <div id="detail-change" class="detail-change"></div>
+      </div>
+    </header>
+
+    <div class="chart-controls">
+      <button class="chart-period active" data-period="1h">1시간</button>
+      <button class="chart-period" data-period="1d">1일</button>
+      <button class="chart-period" data-period="1w">1주</button>
+      <button class="chart-period" data-period="1M">1달</button>
+    </div>
+
+    <div id="chart-container"></div>
+
+    <div class="detail-stats">
+      <div class="stat-item">
+        <span class="stat-label">24h 최고</span>
+        <span id="stat-high" class="stat-value">-</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">24h 최저</span>
+        <span id="stat-low" class="stat-value">-</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">24h 거래량</span>
+        <span id="stat-volume" class="stat-value">-</span>
+      </div>
+    </div>
   </div>
 
   <script src="config.js"></script>

@@ -147,7 +147,7 @@ function renderCryptoList(data) {
     const coinSymbol = coin.symbol.replace('USDT', '');
     const fallbackUrl = getCoinIconFallback(coin.symbol);
     return `
-      <div class="price-item">
+      <div class="price-item" onclick="showDetail('${coin.symbol}', '${coin.name}')">
         <div class="coin-info">
           <img src="${getCoinIcon(coin.symbol)}" alt="${coinSymbol}" class="coin-icon" onerror="this.onerror=null; this.src='${fallbackUrl}'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='flex';}">
           <div class="stock-icon fallback-icon" style="display:none">${coin.name.charAt(0)}</div>
@@ -296,3 +296,160 @@ setInterval(fetchCryptoPrices, 30000);
 
 // 1시간마다 환율 새로고침
 setInterval(fetchExchangeRate, 60 * 60 * 1000);
+
+// ============================================
+// 상세 페이지 (차트)
+// ============================================
+let chart = null;
+let candleSeries = null;
+let currentSymbol = null;
+let currentPeriod = '1d';
+
+// 상세 페이지 표시
+async function showDetail(symbol, name) {
+  currentSymbol = symbol;
+  const coinSymbol = symbol.replace('USDT', '');
+
+  // 화면 전환
+  document.getElementById('main-view').style.display = 'none';
+  document.getElementById('detail-view').style.display = 'block';
+
+  // 코인 정보 표시
+  document.getElementById('detail-icon').src = getCoinIcon(symbol);
+  document.getElementById('detail-name').textContent = name;
+  document.getElementById('detail-symbol').textContent = coinSymbol;
+
+  // 현재 가격 정보 가져오기
+  await updateDetailPrice(symbol);
+
+  // 차트 생성
+  createChart();
+  await loadChartData(currentPeriod);
+}
+
+// 가격 정보 업데이트
+async function updateDetailPrice(symbol) {
+  try {
+    const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`);
+    const data = await response.json();
+
+    const price = parseFloat(data.lastPrice);
+    const change = parseFloat(data.priceChangePercent);
+    const high = parseFloat(data.highPrice);
+    const low = parseFloat(data.lowPrice);
+    const volume = parseFloat(data.quoteVolume);
+
+    document.getElementById('detail-price').textContent = `₩${Math.round(price * usdToKrw).toLocaleString()}`;
+
+    const changeEl = document.getElementById('detail-change');
+    changeEl.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
+    changeEl.className = `detail-change ${change >= 0 ? 'up' : 'down'}`;
+
+    document.getElementById('stat-high').textContent = `₩${Math.round(high * usdToKrw).toLocaleString()}`;
+    document.getElementById('stat-low').textContent = `₩${Math.round(low * usdToKrw).toLocaleString()}`;
+    document.getElementById('stat-volume').textContent = `$${(volume / 1000000).toFixed(1)}M`;
+  } catch (error) {
+    console.error('가격 정보 조회 실패:', error);
+  }
+}
+
+// 차트 생성
+function createChart() {
+  const container = document.getElementById('chart-container');
+  container.innerHTML = '';
+
+  chart = LightweightCharts.createChart(container, {
+    width: container.clientWidth,
+    height: 350,
+    layout: {
+      background: { type: 'solid', color: 'transparent' },
+      textColor: 'rgba(255, 255, 255, 0.5)',
+    },
+    grid: {
+      vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
+      horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
+    },
+    crosshair: {
+      mode: LightweightCharts.CrosshairMode.Normal,
+    },
+    rightPriceScale: {
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    timeScale: {
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+      timeVisible: true,
+    },
+  });
+
+  candleSeries = chart.addCandlestickSeries({
+    upColor: '#00ff88',
+    downColor: '#ff4757',
+    borderUpColor: '#00ff88',
+    borderDownColor: '#ff4757',
+    wickUpColor: '#00ff88',
+    wickDownColor: '#ff4757',
+  });
+
+  // 반응형
+  window.addEventListener('resize', () => {
+    if (chart) {
+      chart.applyOptions({ width: container.clientWidth });
+    }
+  });
+}
+
+// 차트 데이터 로드
+async function loadChartData(period) {
+  if (!currentSymbol) return;
+
+  // 기간별 설정
+  const settings = {
+    '1h': { interval: '1m', limit: 60 },
+    '1d': { interval: '15m', limit: 96 },
+    '1w': { interval: '1h', limit: 168 },
+    '1M': { interval: '4h', limit: 180 },
+  };
+
+  const { interval, limit } = settings[period];
+
+  try {
+    const response = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${interval}&limit=${limit}`
+    );
+    const data = await response.json();
+
+    const chartData = data.map(candle => ({
+      time: candle[0] / 1000,
+      open: parseFloat(candle[1]),
+      high: parseFloat(candle[2]),
+      low: parseFloat(candle[3]),
+      close: parseFloat(candle[4]),
+    }));
+
+    candleSeries.setData(chartData);
+    chart.timeScale().fitContent();
+  } catch (error) {
+    console.error('차트 데이터 로드 실패:', error);
+  }
+}
+
+// 뒤로가기
+document.getElementById('back-btn').addEventListener('click', () => {
+  document.getElementById('detail-view').style.display = 'none';
+  document.getElementById('main-view').style.display = 'block';
+
+  if (chart) {
+    chart.remove();
+    chart = null;
+  }
+});
+
+// 기간 선택
+document.querySelectorAll('.chart-period').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chart-period').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPeriod = btn.dataset.period;
+    loadChartData(currentPeriod);
+  });
+});
