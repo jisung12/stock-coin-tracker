@@ -539,6 +539,13 @@ async function fetchMetalPrices() {
   });
 })();
 
+// PWA 서비스워커 등록 (홈 화면 앱 + 오프라인 앱 셸)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
 // 초기 로드
 (async () => {
   await fetchExchangeRate();
