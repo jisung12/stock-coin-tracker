@@ -282,12 +282,12 @@ document.querySelectorAll('.sub-tab').forEach(btn => {
     if (market === 'kr') {
       krList.style.display = '';
       usList.style.display = 'none';
-      document.getElementById('stock-info-text').textContent = '코스피 상위 30 · 한국투자증권 API';
+      document.getElementById('stock-info-text').innerHTML = '코스피 상위 30<span class="info-src">(한국투자증권 API)</span>';
       fetchKrStockPrices();
     } else {
       krList.style.display = 'none';
       usList.style.display = '';
-      document.getElementById('stock-info-text').textContent = 'S&P 500 상위 30 · 한국투자증권 API';
+      document.getElementById('stock-info-text').innerHTML = 'S&P 500 상위 30<span class="info-src">(한국투자증권 API)</span>';
       fetchUsStockPrices();
     }
   });

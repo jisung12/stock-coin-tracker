@@ -347,24 +347,36 @@ header h1 {
 .info-bar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 6px 12px;
+  flex-wrap: wrap;
   margin-bottom: 15px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
 }
 
 .info-bar p {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.72rem;
   font-weight: 500;
+  line-height: 1.4;
 }
 
-.last-update, .last-update-etc {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.8rem;
+.info-src {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.32);
+  margin-top: 1px;
+}
+
+.last-update, .last-update-etc, #stock-last-update {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.62rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .price-list {
