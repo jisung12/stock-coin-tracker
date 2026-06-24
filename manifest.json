@@ -2,7 +2,7 @@
   "name": "MARKET WATCH",
   "short_name": "MARKET",
   "description": "실시간 코인·주식·지수·환율 시세",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

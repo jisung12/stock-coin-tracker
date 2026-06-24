@@ -1,9 +1,9 @@
 // MARKET WATCH 서비스워커
 // 앱 셸(정적 파일)만 캐시. 시세 데이터(외부 API)는 항상 네트워크.
-const CACHE = 'mw-v1';
+const CACHE = 'mw-v2';
+// './index.html'은 Cloudflare Pages가 './'로 308 리다이렉트하므로 캐시 목록에서 제외
 const SHELL = [
   './',
-  './index.html',
   './style.css',
   './script.js',
   './config.js',
@@ -38,7 +38,7 @@ self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(req).then(cached => {
       const net = fetch(req).then(res => {
-        if (res && res.status === 200) {
+        if (res && res.status === 200 && !res.redirected) {
           const copy = res.clone();
           caches.open(CACHE).then(c => c.put(req, copy));
         }
