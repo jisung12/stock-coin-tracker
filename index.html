@@ -53,7 +53,9 @@
         <button class="tab active" data-tab="crypto">코인</button>
         <button class="tab" data-tab="stock">주식</button>
         <button class="tab" data-tab="etc">기타</button>
+        <button class="tab" data-tab="board">게시판</button>
       </nav>
+      <button id="help-btn" class="help-btn" aria-label="설치 안내">?</button>
     </header>
 
     <main>
@@ -110,6 +112,21 @@
           <div class="loading">로딩 중...</div>
         </div>
       </section>
+
+      <!-- 게시판 섹션 -->
+      <section id="board" class="tab-content">
+        <div class="info-bar">
+          <p>자유게시판 · 시장 이야기를 나눠보세요</p>
+        </div>
+        <form id="board-form" class="board-form">
+          <input type="text" id="board-name" class="board-name" placeholder="닉네임" maxlength="20" autocomplete="off">
+          <textarea id="board-text" class="board-text" placeholder="내용을 입력하세요" maxlength="500"></textarea>
+          <button type="submit" class="board-submit">등록</button>
+        </form>
+        <div id="board-list" class="board-list">
+          <div class="loading">로딩 중...</div>
+        </div>
+      </section>
     </main>
 
     <footer>
@@ -157,6 +174,35 @@
       <div class="stat-item">
         <span class="stat-label">24h 거래량</span>
         <span id="stat-volume" class="stat-value">-</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 설치 안내 모달 -->
+  <div id="install-modal" class="modal-overlay" style="display:none">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>홈 화면에 앱 설치</h2>
+        <button id="install-close" class="modal-close" aria-label="닫기">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="install-os">
+          <h3>📱 아이폰 (사파리)</h3>
+          <ol>
+            <li>사파리로 이 페이지 열기</li>
+            <li>하단 <b>공유 버튼</b> 탭</li>
+            <li><b>"홈 화면에 추가"</b> 선택 → 추가</li>
+          </ol>
+        </div>
+        <div class="install-os">
+          <h3>🤖 안드로이드 (크롬)</h3>
+          <ol>
+            <li>크롬으로 이 페이지 열기</li>
+            <li>우상단 <b>⋮ 메뉴</b> 탭</li>
+            <li><b>"앱 설치"</b> 또는 <b>"홈 화면에 추가"</b> 선택</li>
+          </ol>
+        </div>
+        <p class="install-note">설치하면 주소창 없이 앱처럼 전체화면으로 실행됩니다.</p>
       </div>
     </div>
   </div>

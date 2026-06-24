@@ -17,6 +17,10 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (tab.dataset.tab === 'etc') {
       fetchMetalPrices();
     }
+    // 게시판 탭 클릭 시 글 로드
+    if (tab.dataset.tab === 'board') {
+      fetchBoard();
+    }
   });
 });
 
@@ -537,6 +541,82 @@ async function fetchMetalPrices() {
     const btn = e.target.closest('.sort-chip'); if (!btn) return;
     stockSort = btn.dataset.sort; setActiveChip('stock-sort', btn); renderActiveStock();
   });
+})();
+
+// ============================================
+// 게시판 (백엔드: Worker /board — 집에서 구현 예정)
+//   GET  /board       -> { success, posts: [{ name, text, ts }] }
+//   POST /board {name,text} -> { success, post }
+// ============================================
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function fetchBoard() {
+  const list = document.getElementById('board-list');
+  list.innerHTML = '<div class="loading">로딩 중...</div>';
+  try {
+    const res = await fetch(`${WORKER_URL}/board`);
+    if (!res.ok) throw new Error('not-ready');
+    const result = await res.json();
+    if (!result.success || !Array.isArray(result.posts)) throw new Error('not-ready');
+    renderBoard(result.posts);
+  } catch (e) {
+    list.innerHTML = '<div class="notice"><p>게시판 서버 준비 중입니다</p><p style="font-size:0.85rem;color:#666">집에서 Worker 연결 예정</p></div>';
+  }
+}
+
+function renderBoard(posts) {
+  const list = document.getElementById('board-list');
+  if (!posts.length) {
+    list.innerHTML = '<div class="notice"><p>아직 글이 없습니다. 첫 글을 남겨보세요</p></div>';
+    return;
+  }
+  list.innerHTML = posts.map(p => `
+    <div class="board-item">
+      <div class="board-item-head">
+        <span class="board-item-name">${escapeHtml(p.name || '익명')}</span>
+        <span class="board-item-time">${p.ts ? new Date(p.ts).toLocaleString('ko-KR') : ''}</span>
+      </div>
+      <div class="board-item-text">${escapeHtml(p.text || '')}</div>
+    </div>
+  `).join('');
+}
+
+(function setupBoard() {
+  const form = document.getElementById('board-form');
+  if (!form) return;
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = document.getElementById('board-name').value.trim();
+    const text = document.getElementById('board-text').value.trim();
+    if (!text) return;
+    try {
+      const res = await fetch(`${WORKER_URL}/board`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name || '익명', text })
+      });
+      if (!res.ok) throw new Error('not-ready');
+      const result = await res.json();
+      if (!result.success) throw new Error('fail');
+      document.getElementById('board-text').value = '';
+      fetchBoard();
+    } catch (err) {
+      alert('게시판 서버가 아직 준비되지 않았어요 (집에서 Worker 연결 예정)');
+    }
+  });
+})();
+
+// 설치 안내 모달
+(function setupHelp() {
+  const btn = document.getElementById('help-btn');
+  const modal = document.getElementById('install-modal');
+  const close = document.getElementById('install-close');
+  if (!btn || !modal) return;
+  btn.addEventListener('click', () => { modal.style.display = 'flex'; });
+  close.addEventListener('click', () => { modal.style.display = 'none'; });
+  modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
 })();
 
 // PWA 서비스워커 등록 (홈 화면 앱 + 오프라인 앱 셸)

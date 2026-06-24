@@ -170,6 +170,120 @@ header {
   color: #fff;
 }
 
+/* === 헤더 도움말 버튼 === */
+.help-btn {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 50;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.help-btn:hover { color: #fff; border-color: rgba(255, 255, 255, 0.3); }
+
+/* === 모달 === */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal {
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(135deg, #1a1230, #0d1117);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.modal-head h2 { font-size: 1.1rem; font-weight: 700; }
+.modal-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.modal-body { padding: 20px; }
+.install-os { margin-bottom: 18px; }
+.install-os h3 { font-size: 0.95rem; margin-bottom: 8px; color: #a5b4fc; }
+.install-os ol { padding-left: 20px; }
+.install-os li { font-size: 0.9rem; line-height: 1.7; color: rgba(255, 255, 255, 0.85); }
+.install-os b { color: #fff; }
+.install-note { margin-top: 6px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.45); }
+
+/* === 게시판 === */
+.board-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.board-name, .board-text {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+}
+.board-name::placeholder, .board-text::placeholder { color: rgba(255, 255, 255, 0.35); }
+.board-name:focus, .board-text:focus { border-color: rgba(160, 120, 255, 0.5); }
+.board-text { min-height: 70px; resize: vertical; }
+.board-submit {
+  align-self: flex-end;
+  background: rgba(120, 80, 255, 0.3);
+  border: 1px solid rgba(160, 120, 255, 0.5);
+  color: #fff;
+  border-radius: 50px;
+  padding: 9px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+.board-submit:hover { background: rgba(120, 80, 255, 0.45); }
+.board-list { display: flex; flex-direction: column; gap: 10px; }
+.board-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.board-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.board-item-name { font-weight: 600; font-size: 0.9rem; color: #a5b4fc; }
+.board-item-time { font-size: 0.75rem; color: rgba(255, 255, 255, 0.4); }
+.board-item-text { font-size: 0.92rem; line-height: 1.6; color: rgba(255, 255, 255, 0.9); white-space: pre-wrap; word-break: break-word; }
+
 header h1 {
   font-size: 2.5rem;
   font-weight: 800;
@@ -193,14 +307,15 @@ header h1 {
 }
 
 .tab {
-  padding: 14px 36px;
+  padding: 12px 20px;
   border: none;
   background: transparent;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 600;
   cursor: pointer;
   border-radius: 12px;
+  white-space: nowrap;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
