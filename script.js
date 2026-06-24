@@ -264,7 +264,6 @@ async function fetchKrStockPrices() {
       if (!item?.success) return `
         <div class="price-item">
           <div class="coin-info">
-            <div class="stock-icon">${stock.name.charAt(0)}</div>
             <div><div class="coin-name">${stock.name}</div><div class="coin-symbol">${stock.code}</div></div>
           </div>
           <div class="price-info"><div class="price" style="color:#888">조회 불가</div></div>
@@ -272,7 +271,6 @@ async function fetchKrStockPrices() {
       return `
         <div class="price-item">
           <div class="coin-info">
-            <div class="stock-icon">${stock.name.charAt(0)}</div>
             <div><div class="coin-name">${stock.name}</div><div class="coin-symbol">${stock.code}</div></div>
           </div>
           <div class="price-info">
@@ -307,7 +305,6 @@ async function fetchUsStockPrices() {
       if (!item?.success) return `
         <div class="price-item">
           <div class="coin-info">
-            <div class="stock-icon us-stock-icon">${stock.symb.charAt(0)}</div>
             <div><div class="coin-name">${stock.name}</div><div class="coin-symbol">${stock.symb}</div></div>
           </div>
           <div class="price-info"><div class="price" style="color:#888">조회 불가</div></div>
@@ -322,7 +319,6 @@ async function fetchUsStockPrices() {
       return `
         <div class="price-item">
           <div class="coin-info">
-            <div class="stock-icon us-stock-icon">${stock.symb.charAt(0)}</div>
             <div><div class="coin-name">${stock.name}</div><div class="coin-symbol">${stock.symb}</div></div>
           </div>
           <div class="price-info">
