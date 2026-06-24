@@ -119,13 +119,6 @@ header {
 .chip-chg.up, .chip-price.up { color: #00ff88; }
 .chip-chg.down, .chip-price.down { color: #ff4757; }
 
-.chip-fx .chip-price {
-  background: linear-gradient(135deg, #ffd700, #ffaa00);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
 .ticker-hint {
   text-align: center;
   color: rgba(255, 255, 255, 0.35);
