@@ -126,6 +126,50 @@ header {
   margin-bottom: 20px;
 }
 
+/* === 정렬 / 검색 컨트롤 === */
+.list-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.search-box {
+  flex: 1 1 140px;
+  min-width: 120px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+}
+.search-box::placeholder { color: rgba(255, 255, 255, 0.35); }
+.search-box:focus { border-color: rgba(160, 120, 255, 0.5); }
+
+.sort-chips { display: flex; gap: 6px; flex: 0 0 auto; }
+.sort-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 50px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+}
+.sort-chip:hover { color: #fff; border-color: rgba(255, 255, 255, 0.25); }
+.sort-chip.active {
+  background: rgba(120, 80, 255, 0.3);
+  border-color: rgba(160, 120, 255, 0.5);
+  color: #fff;
+}
+
 header h1 {
   font-size: 2.5rem;
   font-weight: 800;

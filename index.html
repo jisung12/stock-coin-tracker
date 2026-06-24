@@ -57,6 +57,15 @@
           <p>시가총액 상위 30개 코인 (CoinMarketCap 기준) · Binance 실시간 시세</p>
           <span class="last-update">업데이트: -</span>
         </div>
+        <div class="list-controls">
+          <input type="search" id="coin-search" class="search-box" placeholder="코인 검색" autocomplete="off">
+          <div class="sort-chips" id="coin-sort">
+            <button class="sort-chip active" data-sort="default">기본</button>
+            <button class="sort-chip" data-sort="up">상승률</button>
+            <button class="sort-chip" data-sort="down">하락률</button>
+            <button class="sort-chip" data-sort="price">가격</button>
+          </div>
+        </div>
         <div id="crypto-list" class="price-list">
           <div class="loading">로딩 중...</div>
         </div>
@@ -71,6 +80,15 @@
         <div class="info-bar">
           <p id="stock-info-text">코스피 상위 30 · 한국투자증권 API</p>
           <span id="stock-last-update">업데이트: -</span>
+        </div>
+        <div class="list-controls">
+          <input type="search" id="stock-search" class="search-box" placeholder="종목 검색" autocomplete="off">
+          <div class="sort-chips" id="stock-sort">
+            <button class="sort-chip active" data-sort="default">기본</button>
+            <button class="sort-chip" data-sort="up">상승률</button>
+            <button class="sort-chip" data-sort="down">하락률</button>
+            <button class="sort-chip" data-sort="price">가격</button>
+          </div>
         </div>
         <div id="stock-kr-list" class="price-list"></div>
         <div id="stock-us-list" class="price-list" style="display:none"></div>

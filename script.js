@@ -21,6 +21,32 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 // ============================================
+// 정렬 / 검색 상태 + 공용 헬퍼
+// ============================================
+let coinSort = 'default', coinQuery = '';
+let stockSort = 'default', stockQuery = '';
+
+// mode: 'default'|'up'|'down'|'price'
+function sortRows(rows, mode, changeOf, priceOf) {
+  const r = rows.slice();
+  if (mode === 'up') r.sort((a, b) => (changeOf(b) || 0) - (changeOf(a) || 0));
+  else if (mode === 'down') r.sort((a, b) => (changeOf(a) || 0) - (changeOf(b) || 0));
+  else if (mode === 'price') r.sort((a, b) => (priceOf(b) || 0) - (priceOf(a) || 0));
+  return r; // default: 원래 순서 유지
+}
+
+function setActiveChip(containerId, btn) {
+  document.querySelectorAll('#' + containerId + ' .sort-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function renderActiveStock() {
+  const market = document.querySelector('.sub-tab.active')?.dataset.market || 'kr';
+  if (market === 'us') renderUsList();
+  else renderKrList();
+}
+
+// ============================================
 // 코인 시세 (Binance API)
 // ============================================
 // 시총 상위 30개 (스테이블코인 제외, Binance 기준)
@@ -172,7 +198,12 @@ async function fetchCryptoPrices() {
   }
 }
 
+let lastCoinData = null;
 function renderCryptoList(data) {
+  if (data) lastCoinData = data;
+  else data = lastCoinData;
+  if (!data) return;
+
   const cryptoList = document.getElementById('crypto-list');
 
   // 심볼 순서대로 매핑
@@ -181,14 +212,25 @@ function renderCryptoList(data) {
     priceMap[item.symbol] = item;
   });
 
-  // 상단 티커: 비트코인 (실데이터, Binance)
+  // 상단 티커: 비트코인 (필터/정렬과 무관하게 항상 갱신)
   const btc = priceMap['BTCUSDT'];
   if (btc) updateTickerChip('btc', parseFloat(btc.lastPrice), parseFloat(btc.priceChangePercent), '$');
 
-  cryptoList.innerHTML = COIN_LIST.map(coin => {
-    const ticker = priceMap[coin.symbol];
-    if (!ticker) return '';
+  // 검색 + 정렬
+  let rows = COIN_LIST.map(coin => ({ coin, ticker: priceMap[coin.symbol] })).filter(r => r.ticker);
+  const q = coinQuery.trim().toLowerCase();
+  if (q) {
+    rows = rows.filter(r =>
+      r.coin.name.toLowerCase().includes(q) ||
+      r.coin.symbol.toLowerCase().includes(q)
+    );
+  }
+  rows = sortRows(rows, coinSort,
+    r => parseFloat(r.ticker.priceChangePercent),
+    r => parseFloat(r.ticker.lastPrice)
+  );
 
+  cryptoList.innerHTML = rows.map(({ coin, ticker }) => {
     const price = parseFloat(ticker.lastPrice);
     const change = parseFloat(ticker.priceChangePercent);
 
@@ -213,7 +255,7 @@ function renderCryptoList(data) {
         </div>
       </div>
     `;
-  }).join('');
+  }).join('') || '<div class="notice"><p>검색 결과 없음</p></div>';
 
   document.querySelector('.last-update').textContent =
     `업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
@@ -247,6 +289,7 @@ document.querySelectorAll('.sub-tab').forEach(btn => {
   });
 });
 
+let lastKrData = null;
 async function fetchKrStockPrices() {
   const list = document.getElementById('stock-kr-list');
   list.innerHTML = '<div class="loading">로딩 중...</div>';
@@ -255,20 +298,37 @@ async function fetchKrStockPrices() {
     const res = await fetch(`${WORKER_URL}/stocks/kr`);
     const result = await res.json();
     if (!result.success) throw new Error(result.error || 'API 오류');
+    lastKrData = result;
+    renderKrList();
+  } catch (error) {
+    list.innerHTML = `<div class="notice"><p>데이터를 불러올 수 없습니다</p><p style="font-size:0.85rem;color:#666">${error.message}</p></div>`;
+  }
+}
 
-    const priceMap = {};
-    result.data.forEach(item => { priceMap[item.code] = item; });
+function renderKrList() {
+  if (!lastKrData) return;
+  const list = document.getElementById('stock-kr-list');
 
-    list.innerHTML = CONFIG.WATCHLIST_KR.map(stock => {
-      const item = priceMap[stock.code];
-      if (!item?.success) return `
+  const priceMap = {};
+  lastKrData.data.forEach(item => { priceMap[item.code] = item; });
+
+  let rows = CONFIG.WATCHLIST_KR.map(stock => ({ stock, item: priceMap[stock.code] }));
+  const q = stockQuery.trim().toLowerCase();
+  if (q) rows = rows.filter(r => r.stock.name.toLowerCase().includes(q) || r.stock.code.includes(q));
+  rows = sortRows(rows, stockSort,
+    r => (r.item && r.item.success && typeof r.item.change === 'number') ? r.item.change : null,
+    r => (r.item && r.item.success) ? r.item.price : null
+  );
+
+  list.innerHTML = rows.map(({ stock, item }) => {
+    if (!item?.success) return `
         <div class="price-item">
           <div class="coin-info">
             <div><div class="coin-name">${stock.name}</div><div class="coin-symbol">${stock.code}</div></div>
           </div>
           <div class="price-info"><div class="price" style="color:#888">조회 불가</div></div>
         </div>`;
-      return `
+    return `
         <div class="price-item">
           <div class="coin-info">
             <div><div class="coin-name">${stock.name}</div><div class="coin-symbol">${stock.code}</div></div>
@@ -278,16 +338,14 @@ async function fetchKrStockPrices() {
             <div class="change ${item.change >= 0 ? 'up' : 'down'}">${item.change >= 0 ? '+' : ''}${item.change.toFixed(2)}%</div>
           </div>
         </div>`;
-    }).join('');
+  }).join('') || '<div class="notice"><p>검색 결과 없음</p></div>';
 
-    if (result.lastUpdate) {
-      document.getElementById('stock-last-update').textContent = `업데이트: ${new Date(result.lastUpdate).toLocaleTimeString('ko-KR')}`;
-    }
-  } catch (error) {
-    list.innerHTML = `<div class="notice"><p>데이터를 불러올 수 없습니다</p><p style="font-size:0.85rem;color:#666">${error.message}</p></div>`;
+  if (lastKrData.lastUpdate) {
+    document.getElementById('stock-last-update').textContent = `업데이트: ${new Date(lastKrData.lastUpdate).toLocaleTimeString('ko-KR')}`;
   }
 }
 
+let lastUsData = null;
 async function fetchUsStockPrices() {
   const list = document.getElementById('stock-us-list');
   list.innerHTML = '<div class="loading">로딩 중...</div>';
@@ -296,27 +354,47 @@ async function fetchUsStockPrices() {
     const res = await fetch(`${WORKER_URL}/stocks/us`);
     const result = await res.json();
     if (!result.success) throw new Error(result.error || 'API 오류');
+    lastUsData = result;
+    renderUsList();
+  } catch (error) {
+    list.innerHTML = `<div class="notice"><p>데이터를 불러올 수 없습니다</p><p style="font-size:0.85rem;color:#666">${error.message}</p></div>`;
+  }
+}
 
-    const priceMap = {};
-    result.data.forEach(item => { priceMap[item.symb] = item; });
+// 미장 등락률: Worker가 change를 안 주면(null) 전일종가(base)로 직접 계산
+function usChange(item) {
+  if (typeof item.change === 'number') return item.change;
+  return item.base ? (item.price - item.base) / item.base * 100 : null;
+}
 
-    list.innerHTML = CONFIG.WATCHLIST_US.map(stock => {
-      const item = priceMap[stock.symb];
-      if (!item?.success) return `
+function renderUsList() {
+  if (!lastUsData) return;
+  const list = document.getElementById('stock-us-list');
+
+  const priceMap = {};
+  lastUsData.data.forEach(item => { priceMap[item.symb] = item; });
+
+  let rows = CONFIG.WATCHLIST_US.map(stock => ({ stock, item: priceMap[stock.symb] }));
+  const q = stockQuery.trim().toLowerCase();
+  if (q) rows = rows.filter(r => r.stock.name.toLowerCase().includes(q) || r.stock.symb.toLowerCase().includes(q));
+  rows = sortRows(rows, stockSort,
+    r => (r.item && r.item.success) ? usChange(r.item) : null,
+    r => (r.item && r.item.success) ? r.item.price : null
+  );
+
+  list.innerHTML = rows.map(({ stock, item }) => {
+    if (!item?.success) return `
         <div class="price-item">
           <div class="coin-info">
             <div><div class="coin-name">${stock.name}</div><div class="coin-symbol">${stock.symb}</div></div>
           </div>
           <div class="price-info"><div class="price" style="color:#888">조회 불가</div></div>
         </div>`;
-      // 등락률: Worker가 change를 안 주면(null) 전일종가(base)로 직접 계산
-      const chg = (typeof item.change === 'number')
-        ? item.change
-        : (item.base ? (item.price - item.base) / item.base * 100 : null);
-      const chgHtml = (chg === null)
-        ? '<div class="change">-</div>'
-        : `<div class="change ${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</div>`;
-      return `
+    const chg = usChange(item);
+    const chgHtml = (chg === null)
+      ? '<div class="change">-</div>'
+      : `<div class="change ${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</div>`;
+    return `
         <div class="price-item">
           <div class="coin-info">
             <div><div class="coin-name">${stock.name}</div><div class="coin-symbol">${stock.symb}</div></div>
@@ -327,13 +405,10 @@ async function fetchUsStockPrices() {
             ${chgHtml}
           </div>
         </div>`;
-    }).join('');
+  }).join('') || '<div class="notice"><p>검색 결과 없음</p></div>';
 
-    if (result.lastUpdate) {
-      document.getElementById('stock-last-update').textContent = `업데이트: ${new Date(result.lastUpdate).toLocaleTimeString('ko-KR')}`;
-    }
-  } catch (error) {
-    list.innerHTML = `<div class="notice"><p>데이터를 불러올 수 없습니다</p><p style="font-size:0.85rem;color:#666">${error.message}</p></div>`;
+  if (lastUsData.lastUpdate) {
+    document.getElementById('stock-last-update').textContent = `업데이트: ${new Date(lastUsData.lastUpdate).toLocaleTimeString('ko-KR')}`;
   }
 }
 
@@ -442,6 +517,27 @@ async function fetchMetalPrices() {
     `;
   }
 }
+
+// ============================================
+// 정렬 / 검색 컨트롤 연결
+// ============================================
+(function setupSortSearch() {
+  const coinSearch = document.getElementById('coin-search');
+  if (coinSearch) coinSearch.addEventListener('input', e => { coinQuery = e.target.value; renderCryptoList(); });
+  const coinSortEl = document.getElementById('coin-sort');
+  if (coinSortEl) coinSortEl.addEventListener('click', e => {
+    const btn = e.target.closest('.sort-chip'); if (!btn) return;
+    coinSort = btn.dataset.sort; setActiveChip('coin-sort', btn); renderCryptoList();
+  });
+
+  const stockSearch = document.getElementById('stock-search');
+  if (stockSearch) stockSearch.addEventListener('input', e => { stockQuery = e.target.value; renderActiveStock(); });
+  const stockSortEl = document.getElementById('stock-sort');
+  if (stockSortEl) stockSortEl.addEventListener('click', e => {
+    const btn = e.target.closest('.sort-chip'); if (!btn) return;
+    stockSort = btn.dataset.sort; setActiveChip('stock-sort', btn); renderActiveStock();
+  });
+})();
 
 // 초기 로드
 (async () => {
